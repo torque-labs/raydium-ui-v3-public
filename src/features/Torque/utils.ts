@@ -3,7 +3,7 @@ import { TorqueConversion, TorqueRawOffer } from './types'
 /**
  * Torque API URL
  */
-const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
+const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server-devnet.torque.so'
 
 /**
  * Torque API routes
