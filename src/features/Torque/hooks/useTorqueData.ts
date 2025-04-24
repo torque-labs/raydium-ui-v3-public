@@ -5,7 +5,9 @@ import { TorqueOffer } from '../types'
 import { PublicKey } from '@solana/web3.js'
 import dayjs from 'dayjs'
 import { useToast } from '@chakra-ui/react'
+import { useTokenStore } from '@/store/useTokenStore'
 
+// TODO: Change to the correct project id for the production environment
 const RAYDIUM_PROJECT_ID = 'cm9txt2wd000dl71ex927z7jc'
 
 /**
@@ -16,6 +18,8 @@ const RAYDIUM_PROJECT_ID = 'cm9txt2wd000dl71ex927z7jc'
  * @returns offers and conversions for wallet
  */
 export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined }) {
+  const tokenMap = useTokenStore((s) => s.tokenMap)
+
   const [offers, setOffers] = useState<TorqueOffer[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
@@ -81,9 +85,11 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
 
         // Calculate the rewards
         const totalRewardsValue = distributor.totalFundAmount ?? 0
-        // TODO: Get the token details
-        const rewardDenomination = distributor.emissionType === 'SOL' ? 'SOL' : 'RAY'
         const rewardPerUser = distributor.distributionFunction.yIntercept
+
+        // Get the token details
+        const rewardToken = typeof distributor.tokenAddress === 'string' ? tokenMap.get(distributor.tokenAddress) : undefined
+        const rewardDenomination = distributor.emissionType === 'SOL' ? 'SOL' : rewardToken?.symbol ?? 'Unknown'
 
         // Calculate the offer status
         const startTime = dayjs(offer.startTime)
