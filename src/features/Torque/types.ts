@@ -79,7 +79,7 @@ export type TorqueOffer = {
   id: string
   name: string
   description: string
-  image: string
+  image?: string
   status: 'ACTIVE' | 'CLAIMED' | 'PENDING' | 'EXPIRED' | 'INELIGIBLE'
   startTime: Dayjs
   endTime: Dayjs

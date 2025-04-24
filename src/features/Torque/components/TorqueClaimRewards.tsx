@@ -1,4 +1,4 @@
-import { Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
+import { Flex, Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
 import { useMemo } from 'react'
 import TorqueOfferCard from './TorqueOfferCard'
 import { colors } from '@/theme/cssVariables'
@@ -12,11 +12,29 @@ interface Props {
 
 export default function TorqueClaimRewards({ offers, claimOffer }: Props) {
   const claimableOffers = useMemo(() => {
-    return offers.filter((offer) => offer.status === 'ACTIVE' && offer.eligible)
+    return offers
+      .filter((offer) => offer.status === 'ACTIVE' && offer.eligible)
+      .map((offer) => ({
+        ...offer,
+        icon: (
+          <Flex w={12} h={12} sx={{ aspectRatio: '1/1' }} justify="center" align="center" bg={colors.backgroundMedium} borderRadius="md">
+            <GiftIcon color={colors.textPrimary} width={16} height={16} />
+          </Flex>
+        )
+      }))
   }, [offers])
 
   const historicalOffers = useMemo(() => {
-    return offers.filter((offer) => offer.status !== 'ACTIVE')
+    return offers
+      .filter((offer) => offer.status !== 'ACTIVE')
+      .map((offer) => ({
+        ...offer,
+        icon: (
+          <Flex w={12} h={12} sx={{ aspectRatio: '1/1' }} justify="center" align="center" bg={colors.backgroundMedium} borderRadius="md">
+            <GiftIcon color={colors.textPrimary} width={16} height={16} />
+          </Flex>
+        )
+      }))
   }, [offers])
 
   return (

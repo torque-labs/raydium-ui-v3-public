@@ -1,20 +1,22 @@
 import { SvgIcon } from '../type'
 
 export default function GiftIcon(props: SvgIcon) {
+  const { width = 16, height = 16 } = props
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       focusable="false"
       className="chakra-icon"
       {...props}
+      width={width}
+      height={height}
     >
       <rect x="3" y="8" width="18" height="4" rx="1" />
       <path d="M12 8v13" />

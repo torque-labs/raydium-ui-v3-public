@@ -14,32 +14,30 @@ import {
   Heading,
   HStack
 } from '@chakra-ui/react'
-import { Wallet } from '@solana/wallet-adapter-react'
 import TorqueLogo from './TorqueLogo'
 import { useState } from 'react'
 import Tabs from '@/components/Tabs'
-import TorqueActiveRewards from './TorqueActiveRewards'
-import { useTorqueData } from '../hooks/useTorqueData'
 import TorqueClaimRewards from './TorqueClaimRewards'
-import TorqueLeaderboard from './TorqueLeaderboard'
 import Link from 'next/link'
 import { colors } from '@/theme/cssVariables'
 import GiftIcon from '@/icons/misc/Gift'
 import ZapIcon from '@/icons/misc/Zap'
-
+import { TorqueOffer } from '../types'
+import TorqueComingSoon from './TorqueComingSoon'
 interface Props {
-  wallet?: Wallet | null
   isOpen: boolean
   onClose: () => void
+  offers: TorqueOffer[]
+  handleClaimOffer: (offerId: string) => void
+  loading: boolean
+  error: string | null
 }
 
-const TABS = ['Claim', 'Active', 'Leaderboard'] as const
+const TABS = ['Claim', 'Redacted'] as const
 type TabEnum = typeof TABS[number]
 
-export default function TorqueDrawer({ wallet, isOpen, onClose }: Props) {
+export default function TorqueDrawer({ isOpen, onClose, offers, handleClaimOffer, loading, error }: Props) {
   const [selectedTab, setSelectedTab] = useState<TabEnum>('Claim')
-
-  const { offers, handleClaimOffer, loading, error } = useTorqueData({ wallet })
 
   if (loading) {
     return (
@@ -91,8 +89,7 @@ export default function TorqueDrawer({ wallet, isOpen, onClose }: Props) {
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
       {selectedTab === 'Claim' && <TorqueClaimRewards offers={offers} claimOffer={handleClaimOffer} />}
-      {selectedTab === 'Active' && <TorqueActiveRewards />}
-      {selectedTab === 'Leaderboard' && <TorqueLeaderboard />}
+      {selectedTab === 'Redacted' && <TorqueComingSoon />}
     </Wrapper>
   )
 }
@@ -127,7 +124,7 @@ function Wrapper({
               variant="square"
               value={selectedTab}
               renderItem={(item) => (
-                <HStack>
+                <HStack gap={1}>
                   {item === 'Claim' && <GiftIcon />}
                   {item === 'Active' && <ZapIcon />}
                   <Text>{item}</Text>
@@ -143,7 +140,7 @@ function Wrapper({
           <Link href="https://torque.so" target="_blank" rel="noopener noreferrer">
             <Flex align="center" justify="center" gap={1}>
               <Text fontSize="xs">Powered by</Text>
-              <Box w="100px">
+              <Box w="70px">
                 <TorqueLogo />
               </Box>
             </Flex>
