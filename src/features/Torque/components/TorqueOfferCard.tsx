@@ -8,6 +8,7 @@ import Tooltip from '@/components/Tooltip'
 import ClockIcon from '@/icons/misc/Clock'
 interface TorqueOfferCardProps extends TorqueOffer {
   claimOffer: (offerId: string) => void
+  icon?: React.ReactNode
 }
 
 export default function TorqueOfferCard({
@@ -23,7 +24,9 @@ export default function TorqueOfferCard({
   rewardPerUser,
   rewardTotal,
   numberOfParticipants,
-  maxParticipants
+  maxParticipants,
+  icon,
+  image
 }: TorqueOfferCardProps) {
   const [claiming, setClaiming] = useState<boolean>(false)
 
@@ -35,16 +38,18 @@ export default function TorqueOfferCard({
     setClaiming(false)
   }
 
-  const borderColor = useMemo(() => {
+  const { borderColor, buttonText, showReward, buttonVariant } = useMemo(() => {
     switch (status) {
       case 'ACTIVE':
-        return colors.primary
+        return { borderColor: colors.primary, buttonText: 'Claim Reward', showReward: true, buttonVariant: 'solid' }
       case 'EXPIRED':
+        return { borderColor: colors.semanticError, buttonText: 'Missed Reward', buttonVariant: 'outline' }
       case 'INELIGIBLE':
-        return colors.semanticError
-      // This will be the case for Claimed & Pending offers
+        return { borderColor: undefined, buttonText: "Didn't Qualify", buttonVariant: 'outline' }
+      case 'PENDING':
+        return { borderColor: undefined, buttonText: 'Reward Processing', buttonVariant: 'outline' }
       default:
-        return colors.backgroundDark
+        return { borderColor: undefined, buttonText: 'Claimed', showReward: false, buttonVariant: 'outline' }
     }
   }, [status])
 
@@ -52,7 +57,7 @@ export default function TorqueOfferCard({
     <HStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark} border={'solid 1px'} borderColor={borderColor}>
       <VStack align="flex-start" spacing={3} flex={1} w="full">
         <HStack gap={3} w="full">
-          <Image src="/images/reward-icon.png" alt="Reward Icon" w={12} h={12} />
+          {icon ? icon : <Image src={image ?? '/images/reward-icon.png'} alt="Reward Icon" w={12} h={12} />}
           <Stack align="flex-start" spacing={1} w="full">
             <HStack alignItems="center" justifyContent={'space-between'} w="full">
               <Heading as="h3" fontSize="sm" overflow="hidden">
@@ -81,7 +86,7 @@ export default function TorqueOfferCard({
               {numberOfParticipants} / {maxParticipants}
             </Text>
           </HStack>
-          {status === 'ACTIVE' || status === 'CLAIMED' ? (
+          {showReward ? (
             <HStack w="full" gap={2} justify="space-between">
               <Text fontSize="sm">Your Reward</Text>
               <Text fontSize="sm">{rewardPerUser}</Text>
@@ -98,18 +103,9 @@ export default function TorqueOfferCard({
         </VStack>
 
         <HStack w="full" gap={2}>
-          {status !== 'EXPIRED' && status !== 'INELIGIBLE' && (
-            <Button
-              size="sm"
-              w="full"
-              isDisabled={status !== 'ACTIVE'}
-              variant={status === 'ACTIVE' ? 'solid' : 'outline'}
-              isLoading={claiming}
-              onClick={handleClaim}
-            >
-              {status === 'ACTIVE' ? 'Claim Reward' : status === 'PENDING' ? 'Sending Reward' : 'Claimed'}
-            </Button>
-          )}
+          <Button size="sm" w="full" isDisabled={status !== 'ACTIVE'} variant={buttonVariant} isLoading={claiming} onClick={handleClaim}>
+            {buttonText}
+          </Button>
 
           {txSignature ? (
             <Link href={`${explorerUrl}/tx/${txSignature}`} target="_blank" rel="noopener noreferrer">
