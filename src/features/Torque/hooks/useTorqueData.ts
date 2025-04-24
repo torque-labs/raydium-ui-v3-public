@@ -123,11 +123,11 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
     } finally {
       setLoading(false)
     }
-  }, [wallet])
+  }, [wallet, tokenMap])
 
   useEffect(() => {
     fetchTorqueData()
-  }, [wallet])
+  }, [wallet?.adapter.publicKey])
 
   return { offers, handleClaimOffer, loading, error }
 }
