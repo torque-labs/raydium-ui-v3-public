@@ -44,6 +44,23 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
         // Optimistically update the offer status
         setOffers((prevOffers) => prevOffers.map((offer) => (offer.id === offerId ? { ...offer, status: 'PENDING' } : offer)))
 
+        // For now, we poll every 10 seconds for the offer status to change to DONE in crank
+        const interval = setInterval(async () => {
+          if (!wallet?.adapter.publicKey) return
+
+          const updatedConversions = await fetchConversionsByWallet(wallet.adapter.publicKey.toString(), RAYDIUM_PROJECT_ID)
+          const updatedCrank = updatedConversions.find((conversion) => conversion.offer.id === offerId)?.cranks[0]
+
+          if (updatedCrank?.status === 'DONE') {
+            setOffers((prevOffers) =>
+              prevOffers.map((offer) =>
+                offer.id === offerId ? { ...offer, status: 'CLAIMED', txSignature: updatedCrank.transaction } : offer
+              )
+            )
+            clearInterval(interval)
+          }
+        }, 10000)
+
         toast({
           title: 'Offer claimed',
           description: 'You have successfully claimed this offer. Check your wallet and you will shortly receive your reward.',
