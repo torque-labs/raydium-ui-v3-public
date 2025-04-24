@@ -19,12 +19,13 @@ import { useState } from 'react'
 import Tabs from '@/components/Tabs'
 import TorqueActiveRewards from './TorqueActiveRewards'
 import TorqueClaimRewards from './TorqueClaimRewards'
-import TorqueLeaderboard from './TorqueLeaderboard'
+import TorqueLeaderboard from './TorqueComingSoon'
 import Link from 'next/link'
 import { colors } from '@/theme/cssVariables'
 import GiftIcon from '@/icons/misc/Gift'
 import ZapIcon from '@/icons/misc/Zap'
 import { TorqueOffer } from '../types'
+import TorqueComingSoon from './TorqueComingSoon'
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -34,7 +35,7 @@ interface Props {
   error: string | null
 }
 
-const TABS = ['Claim', 'Active', 'Leaderboard'] as const
+const TABS = ['Claim', 'Redacted'] as const
 type TabEnum = typeof TABS[number]
 
 export default function TorqueDrawer({ isOpen, onClose, offers, handleClaimOffer, loading, error }: Props) {
@@ -90,8 +91,7 @@ export default function TorqueDrawer({ isOpen, onClose, offers, handleClaimOffer
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
       {selectedTab === 'Claim' && <TorqueClaimRewards offers={offers} claimOffer={handleClaimOffer} />}
-      {selectedTab === 'Active' && <TorqueActiveRewards />}
-      {selectedTab === 'Leaderboard' && <TorqueLeaderboard />}
+      {selectedTab === 'Redacted' && <TorqueComingSoon />}
     </Wrapper>
   )
 }
@@ -126,7 +126,7 @@ function Wrapper({
               variant="square"
               value={selectedTab}
               renderItem={(item) => (
-                <HStack>
+                <HStack gap={1}>
                   {item === 'Claim' && <GiftIcon />}
                   {item === 'Active' && <ZapIcon />}
                   <Text>{item}</Text>

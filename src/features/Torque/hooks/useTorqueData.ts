@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Wallet } from '@solana/wallet-adapter-react'
 import { fetchOffersByWallet, fetchConversionsByWallet, claimOffer } from '../utils'
 import { TorqueOffer } from '../types'
@@ -119,7 +119,6 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
           id: offer.id,
           name: offer.metadata.title,
           description: offer.metadata.description,
-          image: '/images/reward-icon.png',
           status,
           startTime,
           endTime,
@@ -142,9 +141,13 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
     }
   }, [wallet, tokenMap])
 
+  const activeOffersCount = useMemo(() => {
+    return offers.filter((offer) => offer.status === 'ACTIVE').length
+  }, [offers])
+
   useEffect(() => {
     fetchTorqueData()
   }, [wallet?.adapter.publicKey])
 
-  return { offers, handleClaimOffer, loading, error }
+  return { offers, handleClaimOffer, loading, error, activeOffersCount }
 }

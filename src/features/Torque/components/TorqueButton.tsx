@@ -8,9 +8,7 @@ import { useTorqueData } from '../hooks/useTorqueData'
 export default function TorqueButton() {
   const { wallet } = useWallet()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const { offers, handleClaimOffer, loading, error } = useTorqueData({ wallet })
-
-  const activeOffersCount = offers.filter((offer) => offer.status === 'ACTIVE').length
+  const { offers, handleClaimOffer, loading, error, activeOffersCount } = useTorqueData({ wallet })
 
   return (
     <>
