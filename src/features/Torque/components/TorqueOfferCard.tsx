@@ -1,4 +1,4 @@
-import { VStack, Text, Heading, HStack, Button, Image, Stack, Badge } from '@chakra-ui/react'
+import { VStack, Text, Heading, HStack, Button, Image, Stack, Badge, Flex, Spinner } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -43,13 +43,22 @@ export default function TorqueOfferCard({
       case 'ACTIVE':
         return { borderColor: colors.primary, buttonText: 'Claim Reward', showReward: true, buttonVariant: 'solid' }
       case 'EXPIRED':
-        return { borderColor: colors.semanticError, buttonText: 'Missed Reward', buttonVariant: 'outline' }
+        return { borderColor: colors.semanticError, buttonText: 'Missed Reward', buttonVariant: 'danger' }
       case 'INELIGIBLE':
-        return { borderColor: undefined, buttonText: "Didn't Qualify", buttonVariant: 'outline' }
+        return { borderColor: 'transparent', buttonText: "Didn't Qualify", buttonVariant: 'outline' }
       case 'PENDING':
-        return { borderColor: undefined, buttonText: 'Reward Processing', buttonVariant: 'outline' }
+        return {
+          borderColor: 'transparent',
+          buttonText: (
+            <Flex align="center" gap={2}>
+              <Spinner size="sm" />
+              <Text>Processing Reward</Text>
+            </Flex>
+          ),
+          buttonVariant: 'outline'
+        }
       default:
-        return { borderColor: undefined, buttonText: 'Claimed', showReward: false, buttonVariant: 'outline' }
+        return { borderColor: 'transparent', buttonText: 'Claimed', showReward: false, buttonVariant: 'outline' }
     }
   }, [status])
 
