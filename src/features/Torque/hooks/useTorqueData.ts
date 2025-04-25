@@ -7,8 +7,7 @@ import dayjs from 'dayjs'
 import { useToast } from '@chakra-ui/react'
 import { useTokenStore } from '@/store/useTokenStore'
 
-// TODO: Change to the correct project id for the production environment
-const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cm9txt2wd000dl71ex927z7jc'
+const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cm9w3m8xr01trju1f3lbsy3jn'
 
 /**
  * Fetch offers and conversions for wallet
