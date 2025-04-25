@@ -44,7 +44,7 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
         // Optimistically update the offer status
         setOffers((prevOffers) => prevOffers.map((offer) => (offer.id === offerId ? { ...offer, status: 'PENDING' } : offer)))
 
-        // For now, we poll every 10 seconds for the offer status to change to DONE in crank
+        // For now, we poll every 6 seconds for the offer status to change to DONE in crank
         const interval = setInterval(async () => {
           if (!wallet?.adapter.publicKey) return
 
@@ -54,12 +54,19 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
           if (updatedCrank?.status === 'DONE') {
             setOffers((prevOffers) =>
               prevOffers.map((offer) =>
-                offer.id === offerId ? { ...offer, status: 'CLAIMED', txSignature: updatedCrank.transaction } : offer
+                offer.id === offerId
+                  ? {
+                      ...offer,
+                      numberOfParticipants: offer.numberOfParticipants + 1,
+                      status: 'CLAIMED',
+                      txSignature: updatedCrank.transaction
+                    }
+                  : offer
               )
             )
             clearInterval(interval)
           }
-        }, 10000)
+        }, 6000)
 
         toast({
           title: 'Offer claimed',
@@ -112,7 +119,8 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
         const startTime = dayjs(offer.startTime)
         const endTime = dayjs(offer.endTime)
         const isOfferActive = offer.status === 'ACTIVE' || (startTime.isBefore(dayjs()) && endTime.isAfter(dayjs()))
-        const crankStatus = crank?.status === 'DONE' ? 'CLAIMED' : crank?.status === 'PENDING' ? 'PENDING' : undefined
+        const crankStatus =
+          crank?.status === 'DONE' ? 'CLAIMED' : crank?.status === 'PENDING' || crank?.status === 'STAGED' ? 'PENDING' : undefined
         const status = crankStatus ? crankStatus : offer.eligible ? (isOfferActive ? 'ACTIVE' : 'EXPIRED') : 'INELIGIBLE'
 
         return {

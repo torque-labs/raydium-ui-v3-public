@@ -92,7 +92,7 @@ export default function TorqueOfferCard({
           <HStack w="full" gap={2} justify="space-between">
             <Text fontSize="sm">Participants</Text>
             <Text fontSize="sm">
-              {numberOfParticipants} / {maxParticipants}
+              {typeof maxParticipants === 'number' ? `${numberOfParticipants} / ${maxParticipants}` : numberOfParticipants}
             </Text>
           </HStack>
           {showReward ? (

@@ -15,7 +15,7 @@ export type TorqueConversion = {
 
 type TorqueCrank = {
   id: string
-  status: 'DONE' | 'PENDING' | 'FAILED'
+  status: 'DONE' | 'PENDING' | 'FAILED' | 'STAGED'
   sequenceNumber: number
   transaction: string
   webhookId: string | null
@@ -87,7 +87,7 @@ export type TorqueOffer = {
   rewardPerUser: string
   rewardTotal: string
   numberOfParticipants: number
-  maxParticipants: number
+  maxParticipants?: number
   txSignature?: string
   distributor?: PublicKey
 }
