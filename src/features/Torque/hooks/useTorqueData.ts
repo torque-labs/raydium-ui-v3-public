@@ -112,7 +112,8 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
 
         // Get the token details
         const rewardToken = typeof distributor.tokenAddress === 'string' ? tokenMap.get(distributor.tokenAddress) : undefined
-        const rewardDenomination = distributor.emissionType === 'SOL' ? 'SOL' : rewardToken?.symbol ?? 'Unknown'
+        // The fallback is currently set to RAY just in case the token is not found as we have not been to verify the token fetch works
+        const rewardDenomination = distributor.emissionType === 'SOL' ? 'SOL' : rewardToken?.symbol ?? 'RAY'
 
         // Calculate the offer status
         const startTime = dayjs(offer.startTime)
