@@ -134,18 +134,6 @@ function Wrapper({
             {children}
           </VStack>
         </DrawerBody>
-
-        {/* Drawer footer */}
-        <DrawerFooter bg="transparent" display="flex" justifyContent="center" py={4}>
-          <Link href="https://torque.so" target="_blank" rel="noopener noreferrer">
-            <Flex align="center" justify="center" gap={1}>
-              <Text fontSize="xs">Powered by</Text>
-              <Box w="70px">
-                <TorqueLogo />
-              </Box>
-            </Flex>
-          </Link>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   )
