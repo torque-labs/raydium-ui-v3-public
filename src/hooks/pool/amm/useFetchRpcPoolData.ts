@@ -70,6 +70,7 @@ export default function useFetchRpcPoolData({ poolId, refreshInterval = MINUTE_M
   )
 
   return {
+    poolKeys: poolKeysData?.data[0],
     data,
     isLoading,
     mutate

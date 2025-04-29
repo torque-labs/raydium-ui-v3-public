@@ -5,12 +5,14 @@ import UploadIcon from '@/icons/misc/UploadIcon'
 
 const ImageUploader = ({
   onImageUpload,
+  onError,
   acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif'],
   maxFileSizeInMB = 5,
   maxFiles = 1,
   isDisabled
 }: {
   onImageUpload: (file: File) => void
+  onError?: (error: string | null) => void
   acceptedFileTypes?: string[]
   maxFileSizeInMB?: number
   maxFiles?: number
@@ -23,19 +25,21 @@ const ImageUploader = ({
   const validateFile = useCallback(
     (file: File): boolean => {
       if (!acceptedFileTypes.includes(file.type)) {
-        console.log(`Please upload a valid file type: ${acceptedFileTypes.join(', ')}`)
+        const message = `Please upload a valid file type: ${acceptedFileTypes.join(', ')}`
+        if (onError) onError(message)
         return false
       }
 
       const fileSizeInMB = file.size / (1024 * 1024)
       if (fileSizeInMB > maxFileSizeInMB) {
-        console.log(`File size should be less than ${maxFileSizeInMB}MB`)
+        const message = `Image size too large. Try reducing to < ${maxFileSizeInMB}MB.`
+        if (onError) onError(message)
         return false
       }
-
+      if (onError) onError(null)
       return true
     },
-    [acceptedFileTypes, maxFileSizeInMB]
+    [acceptedFileTypes, maxFileSizeInMB, onError]
   )
 
   const handleFiles = useCallback(
@@ -43,7 +47,8 @@ const ImageUploader = ({
       if (!files || files.length === 0) return
 
       if (files.length > maxFiles) {
-        console.log(`You can upload a maximum of ${maxFiles} file(s)`)
+        const message = `You can upload a maximum of ${maxFiles} file(s)`
+        if (onError) onError(message)
         return
       }
 
@@ -55,7 +60,7 @@ const ImageUploader = ({
         onImageUpload(file)
       }
     },
-    [maxFiles, onImageUpload, validateFile]
+    [maxFiles, onImageUpload, validateFile, onError]
   )
 
   const handleDragEnter = useCallback((e: DragEvent<HTMLDivElement>) => {

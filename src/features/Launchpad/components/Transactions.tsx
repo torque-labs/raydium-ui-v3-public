@@ -7,9 +7,9 @@ import ExternalLink from '@/icons/misc/ExternalLink'
 import NotFound from '@/components/NotFound'
 import useTradeHistory from '@/hooks/launchpad/useTradeHistory'
 import { useAppStore } from '@/store'
-import { encodeStr } from '@/utils/common'
 import { formatCurrency } from '@/utils/numberish/formatter'
 import { ApiV3Token } from '@raydium-io/raydium-sdk-v2'
+import { AddressHightlight, AddressProvider } from '@/components/AddressHightlight'
 
 enum TransactionType {
   All = 'All',
@@ -170,104 +170,110 @@ const Transactions = ({ poolId, mintBInfo }: { poolId?: string; mintBInfo?: ApiV
           </Text>
         </Flex>
       </Flex>
-      <Grid
-        templateColumns={['130px 50px 100px 100px 120px 140px', 'repeat(6, auto)', 'repeat(6, auto)']}
-        justifyContent="space-between"
-        columnGap={4}
-        // overflow="auto"
-        // scrollBehavior="smooth"
-        // overscrollBehavior="contain"
-        alignContent={data.length === 0 ? 'initial' : 'start'}
-        mb={hasMore ? 0 : 10}
-      >
+      <AddressProvider>
         <Grid
-          gridColumn="1 / -1"
-          templateColumns="subgrid"
-          bg="#ABC4FF12"
-          borderTopRadius="12px"
-          px="30px"
-          height="40px"
-          alignItems="center"
-          backdropFilter="blur(8px)"
-          position="sticky"
-          top={0}
-          zIndex={1}
+          templateColumns={['130px 50px 100px 100px 120px 140px', 'repeat(6, auto)', 'repeat(6, auto)']}
+          justifyContent="space-between"
+          columnGap={4}
+          // overflow="auto"
+          // scrollBehavior="smooth"
+          // overscrollBehavior="contain"
+          alignContent={data.length === 0 ? 'initial' : 'start'}
+          mb={hasMore ? 0 : 10}
         >
-          <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary}>
-            {t('launchpad.account')}
-          </Text>
-          <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary}>
-            {t('launchpad.type')}
-          </Text>
-          <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary} textAlign="right">
-            {mintBInfo?.symbol ?? 'SOL'} {t('common.amount')}
-          </Text>
-          <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary} textAlign="right">
-            {t('launchpad.token_amount')}
-          </Text>
-          <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary}>
-            {t('launchpad.time')}
-          </Text>
-          <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary} textAlign="center">
-            {t('launchpad.tx_link')}
-          </Text>
-        </Grid>
-        {data.length === 0 && !isLoading ? (
-          <Grid gridColumn="1 / -1" justifyContent="center">
-            <NotFound />
+          <Grid
+            gridColumn="1 / -1"
+            templateColumns="subgrid"
+            bg="#ABC4FF12"
+            borderTopRadius="12px"
+            px="30px"
+            height="40px"
+            alignItems="center"
+            backdropFilter="blur(8px)"
+            position="sticky"
+            top={0}
+            zIndex={1}
+          >
+            <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary}>
+              {t('launchpad.account')}
+            </Text>
+            <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary}>
+              {t('launchpad.type')}
+            </Text>
+            <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary} textAlign="right">
+              {mintBInfo?.symbol ?? 'SOL'} {t('common.amount')}
+            </Text>
+            <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary} textAlign="right">
+              {t('launchpad.token_amount')}
+            </Text>
+            <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary}>
+              {t('launchpad.time')}
+            </Text>
+            <Text fontSize="sm" fontWeight="medium" lineHeight="18px" color={colors.textSecondary} textAlign="center">
+              {t('launchpad.tx_link')}
+            </Text>
           </Grid>
-        ) : (
-          data
-            .filter((i) => (type === TransactionType.All || i.side === type) && (!myTransaction || i.owner === publicKey?.toBase58()))
-            .map((item, index) => (
-              <Grid
-                key={index}
-                gridColumn="1 / -1"
-                templateColumns="subgrid"
-                bg={index % 2 === 0 ? 'transparent' : '#ABC4FF12'}
-                px="30px"
-                height="40px"
-                alignItems="center"
-              >
-                <Text fontSize="sm" lineHeight="18px">
-                  {encodeStr(item.owner, 5, 3)}
-                </Text>
-                <Text fontSize="sm" lineHeight="18px" color={item.side === 'buy' ? colors.positive : colors.negative}>
-                  {item.side}
-                </Text>
-                <Text fontSize="sm" lineHeight="18px" textAlign="right">
-                  {item.amountB}
-                </Text>
-                <Text fontSize="sm" lineHeight="18px" textAlign="right">
-                  {formatCurrency(item.amountA, { abbreviated: true, decimalPlaces: 4 })}
-                </Text>
-                <Text fontSize="sm" lineHeight="18px">
-                  {dayjs(item.blockTime * 1000).format('MM-DD HH:mm:ss')}
-                </Text>
-                <Flex justifyContent="center">
-                  <a href={`${useAppStore.getState().explorerUrl}/tx/${item.txid}`} target="_blank" rel="noreferrer">
-                    <ExternalLink width="20px" height="20px" />
-                  </a>
-                </Flex>
-              </Grid>
-            ))
-        )}
-        {isLoading ? (
-          <Grid gridColumn="1 / -1" justifyContent="center" height="41px" mt={3}>
-            <Flex alignItems="center">
-              <Spinner size="sm" />
-            </Flex>
-          </Grid>
-        ) : (
-          hasMore && (
-            <Grid gridColumn="1 / -1" justifyContent="center" height="41px" mt={3}>
-              <Button variant="ghost" color={colors.textLink} _hover={{ background: 'transparent' }} px={0} onClick={handleLoadMoreClick}>
-                {t('launchpad.load_more')}
-              </Button>
+          {data.length === 0 && !isLoading ? (
+            <Grid gridColumn="1 / -1" justifyContent="center">
+              <NotFound />
             </Grid>
-          )
-        )}
-      </Grid>
+          ) : (
+            data
+              .filter((i) => (type === TransactionType.All || i.side === type) && (!myTransaction || i.owner === publicKey?.toBase58()))
+              .map((item, index) => (
+                <Grid
+                  key={index}
+                  gridColumn="1 / -1"
+                  templateColumns="subgrid"
+                  bg={index % 2 === 0 ? 'transparent' : '#ABC4FF12'}
+                  px="30px"
+                  height="40px"
+                  alignItems="center"
+                >
+                  <AddressHightlight
+                    address={item.owner}
+                    sx={{
+                      fontSize: 'sm',
+                      lineHeight: '18px'
+                    }}
+                  />
+                  <Text fontSize="sm" lineHeight="18px" color={item.side === 'buy' ? colors.positive : colors.negative}>
+                    {item.side}
+                  </Text>
+                  <Text fontSize="sm" lineHeight="18px" textAlign="right">
+                    {formatCurrency(item.amountB, { maximumDecimalTrailingZeroes: 3 })}
+                  </Text>
+                  <Text fontSize="sm" lineHeight="18px" textAlign="right">
+                    {formatCurrency(item.amountA, { abbreviated: true, decimalPlaces: 4 })}
+                  </Text>
+                  <Text fontSize="sm" lineHeight="18px">
+                    {dayjs(item.blockTime * 1000).format('MM-DD HH:mm:ss')}
+                  </Text>
+                  <Flex justifyContent="center">
+                    <a href={`${useAppStore.getState().explorerUrl}/tx/${item.txid}`} target="_blank" rel="noreferrer">
+                      <ExternalLink width="20px" height="20px" />
+                    </a>
+                  </Flex>
+                </Grid>
+              ))
+          )}
+          {isLoading ? (
+            <Grid gridColumn="1 / -1" justifyContent="center" height="41px" mt={3}>
+              <Flex alignItems="center">
+                <Spinner size="sm" />
+              </Flex>
+            </Grid>
+          ) : (
+            hasMore && (
+              <Grid gridColumn="1 / -1" justifyContent="center" height="41px" mt={3}>
+                <Button variant="ghost" color={colors.textLink} _hover={{ background: 'transparent' }} px={0} onClick={handleLoadMoreClick}>
+                  {t('launchpad.load_more')}
+                </Button>
+              </Grid>
+            )
+          )}
+        </Grid>
+      </AddressProvider>
     </Grid>
   )
 }

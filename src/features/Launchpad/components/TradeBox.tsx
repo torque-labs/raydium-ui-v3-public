@@ -227,6 +227,8 @@ export default function TradeBox({
             configInfo: ToLaunchPadConfig(mintInfo.configInfo),
             configId: mintInfo.configId,
             platformFeeRate: new BN(mintInfo.platformInfo.feeRate),
+            totalSellA: new BN(mintInfo.totalSellA),
+            totalFundRaisingB: new BN(mintInfo.totalFundRaisingB),
 
             onConfirmed,
             onFinally: offLoading

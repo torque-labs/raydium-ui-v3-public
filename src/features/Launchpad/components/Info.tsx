@@ -10,7 +10,7 @@ import ThreeStageProgress from './ThreeStageProgress'
 import { MintInfo } from '../type'
 import Decimal from 'decimal.js'
 import { formatCurrency } from '@/utils/numberish/formatter'
-import { useDialogsStore } from '@/store'
+import { useAppStore, useDialogsStore } from '@/store'
 import { DialogTypes } from '@/constants/dialogs'
 import { getMintWatchList, setMintWatchList } from '../utils'
 import { useEvent } from '@/hooks/useEvent'
@@ -27,11 +27,14 @@ import QuestionCircleIcon from '@/icons/misc/QuestionCircleIcon'
 import TokenAvatar from '@/components/TokenAvatar'
 import { getDurationUText } from '@/utils/time'
 import { getImgProxyUrl } from '@/utils/url'
+import ExternalLink from '@/icons/misc/ExternalLink'
 
 export default function Info({
   poolInfo,
   mintInfo,
   marketCap,
+  mintBPrice,
+  isLanded,
   refreshMintInfo
 }: {
   poolInfo?: LaunchpadPoolInfo
@@ -40,6 +43,8 @@ export default function Info({
     currentMarketCap: Decimal
     marketCapRange: Decimal[]
   }
+  mintBPrice?: number
+  isLanded: boolean
   refreshMintInfo?: () => void
 }) {
   const openDialog = useDialogsStore((s) => s.openDialog)
@@ -47,8 +52,10 @@ export default function Info({
   const [watchList, setWatchList] = useState(getMintWatchList())
   const { colorMode } = useColorMode()
   const isLight = colorMode === 'light'
+  const explorerUrl = useAppStore((s) => s.explorerUrl)
   const { onCopy: copy, hasCopied } = useClipboard(mintInfo ? mintInfo.mint : '')
   const [points, setPoints] = useState<Point[]>([])
+  const isLoading = !mintBPrice
 
   const onUpdateWatchList = useEvent((mint: string, isAdd: boolean) => {
     const newWatchSet = new Set(Array.from(watchList))
@@ -66,41 +73,55 @@ export default function Info({
     setFinishRate((rate) => rate || mintInfo.finishingRate)
   }, [hasMintInfo])
 
-  const generatePoints = useCallback(({ poolInfo, mintInfo }: { poolInfo: LaunchpadPoolInfo; mintInfo: MintInfo }) => {
-    try {
-      const price = Curve.getPrice({
-        poolInfo,
-        curveType: mintInfo.configInfo.curveType,
-        decimalA: Number(mintInfo.decimals),
-        decimalB: mintInfo.mintB.decimals
-      })
-      const points: Point[] = Curve.getPoolCurvePointByPoolInfo({
-        curveType: mintInfo.configInfo.curveType,
-        pointCount: 40,
-        poolInfo
-      }).map((p) => ({
-        x: p.totalSellSupply,
-        y: p.price.toDecimalPlaces(12).toNumber()
-      }))
-
-      const priceNum = price.toDecimalPlaces(12).toNumber()
-      const idx = points.findIndex((p) => price.toDecimalPlaces(12).lte(p.y))
-      if (idx !== -1 && points[idx - 1]?.y !== priceNum && points[idx]?.y !== priceNum)
-        points.splice(idx, 0, {
-          x: points[idx].x,
-          y: priceNum,
-          current: priceNum
+  const generatePoints = useCallback(
+    ({ poolInfo, mintInfo }: { poolInfo: LaunchpadPoolInfo; mintInfo: MintInfo }) => {
+      try {
+        const price = Curve.getPrice({
+          poolInfo,
+          curveType: mintInfo.configInfo.curveType,
+          decimalA: Number(mintInfo.decimals),
+          decimalB: mintInfo.mintB.decimals
         })
-      else if (idx !== -1 && points[idx]?.y === priceNum) points[idx].current = priceNum
 
-      setPoints(points)
-    } catch (e) {
-      console.error(e)
-    }
-  }, [])
+        if (!mintBPrice) {
+          return
+        }
+        const points: Point[] = Curve.getPoolCurvePointByPoolInfo({
+          curveType: mintInfo.configInfo.curveType,
+          pointCount: 40,
+          poolInfo
+        }).map((p) => ({
+          x: p.totalSellSupply,
+          y: p.price
+            .mul(poolInfo.supply.toString())
+            .div(10 ** poolInfo.mintDecimalsA)
+            .mul(mintBPrice)
+            .toNumber()
+        }))
+
+        const currentMarketCap = price
+          .mul(poolInfo.supply.toString())
+          .div(10 ** poolInfo.mintDecimalsA)
+          .mul(mintBPrice)
+          .toNumber()
+        const idx = points.findIndex((p) => new Decimal(currentMarketCap).toDecimalPlaces(2, Decimal.ROUND_DOWN).lte(p.y))
+        if (idx !== -1 && points[idx - 1]?.y !== currentMarketCap && points[idx]?.y !== currentMarketCap)
+          points.splice(idx, 0, {
+            x: points[idx].x,
+            y: currentMarketCap,
+            current: currentMarketCap
+          })
+        else if (idx !== -1 && points[idx]?.y === currentMarketCap) points[idx].current = currentMarketCap
+        setPoints(points)
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    [mintBPrice]
+  )
 
   useEffect(() => {
-    if (!mintInfo?.poolId) return
+    if (!mintInfo?.poolId || !mintBPrice) return
     const cbk = async (poolInfo: LaunchpadPoolInfo) => {
       const poolPrice = Curve.getPrice({
         poolInfo,
@@ -131,12 +152,12 @@ export default function Info({
     }
     addPoolListener(mintInfo.poolId, cbk)
     return () => removePoolListener(mintInfo.poolId, cbk)
-  }, [mintInfo?.poolId])
+  }, [mintInfo?.poolId, mintBPrice])
 
   useEffect(() => {
-    if (!poolInfo || !mintInfo) return
+    if (!poolInfo || !mintInfo || !mintBPrice) return
     generatePoints({ poolInfo, mintInfo })
-  }, [poolInfo, mintInfo])
+  }, [poolInfo, mintInfo, mintBPrice])
 
   const needRefresh = (finishRate > 66.6 && !mintInfo?.priceStageTime2) || (finishRate >= 100 && !mintInfo?.priceFinalTime)
   useEffect(() => {
@@ -223,36 +244,16 @@ export default function Info({
         </Text>
         <Divider my={4} borderColor="#ABC4FF1F" />
         <CurveLineChart
+          isLoading={isLoading}
           data={points}
-          current={
-            poolInfo
-              ? Curve.getPrice({
-                  poolInfo,
-                  curveType: mintInfo.configInfo.curveType,
-                  decimalA: Number(mintInfo.decimals),
-                  decimalB: mintInfo.mintB.decimals
-                })
-                  .toDecimalPlaces(12)
-                  .toNumber()
-              : undefined
-          }
+          current={marketCap?.currentMarketCap.toNumber()}
           margin={{ left: -40, right: 20, bottom: -10, top: 20 }}
         />
-        <Flex justifyContent="space-between" mt="2">
-          <Text color={colors.textSecondary} fontSize="sm">
-            Migration Level:
-          </Text>
-          <Text color={colors.textSecondary} fontSize="sm">
-            {new Decimal(poolInfo?.totalFundRaisingB.toString() ?? 0).div(10 ** mintInfo.mintB.decimals).toString()}{' '}
-            {wSolToSolString(mintInfo.mintB.symbol)}
-          </Text>
-        </Flex>
-
-        <Flex direction="column" gap={3}>
-          <Text color={colors.textSecondary} fontSize="sm">
+        <Flex direction="column" gap={1} mt={3}>
+          <Text color={colors.textSecondary} fontSize="sm" mb={1}>
             Bonding curve progress: {finishRate}%
           </Text>
-          <Box>
+          <Box mb={2}>
             <ThreeStageProgress percent={finishRate} />
             <Box position="relative" mt={2}>
               <Flex justify="space-between" fontSize="2xs" mb={2}>
@@ -380,24 +381,50 @@ export default function Info({
               />
             </Box>
           </Box>
+          <Flex justifyContent="space-between">
+            <Text color={colors.textSecondary} fontSize="sm">
+              Migration threshold:
+            </Text>
+            <Text color={colors.textSecondary} fontSize="sm">
+              {new Decimal(poolInfo?.totalFundRaisingB.toString() ?? 0).div(10 ** mintInfo.mintB.decimals).toString()}{' '}
+              {wSolToSolString(mintInfo.mintB.symbol)}
+            </Text>
+          </Flex>
+          <Flex justifyContent="space-between">
+            <Text color={colors.textSecondary} fontSize="sm">
+              Tokens sold on curve:
+            </Text>
+            <Text color={colors.textSecondary} fontSize="sm">
+              {new Decimal(poolInfo?.totalSellA.toString() ?? 0)
+                .div(poolInfo?.supply.toString() ?? 1)
+                .mul(100)
+                .toNumber()}
+              %
+            </Text>
+          </Flex>
         </Flex>
         <Divider my={4} borderColor="#ABC4FF1F" />
         <Flex direction="column" color={colors.textSecondary} fontSize="sm" gap={1}>
-          <Flex alignItems="center" gap={1}>
+          <Flex justifyContent="space-between" alignItems="center">
             Contract address:
-            <Text color={colors.textLaunchpadLink} decoration="underline">
-              {encodeStr(mintInfo.mint, 5, 3)}
-            </Text>
-            <Flex alignItems="center">
-              <Box
-                alignSelf="flex-end"
-                cursor={hasCopied ? 'default' : 'pointer'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  copy()
-                }}
-              >
-                {hasCopied ? <CircleCheck color={colors.textLaunchpadLink} /> : <CopyLaunchpadIcon color={colors.textLaunchpadLink} />}
+            <Flex
+              alignItems="center"
+              gap={1}
+              cursor={hasCopied ? 'default' : 'pointer'}
+              onClick={(e) => {
+                e.stopPropagation()
+                copy()
+              }}
+            >
+              <Text color={colors.textLaunchpadLink} decoration="underline">
+                {encodeStr(mintInfo.mint, 5, 3)}
+              </Text>
+              <Box>
+                {hasCopied ? (
+                  <CircleCheck width="14px" height="14px" color={colors.textLaunchpadLink} />
+                ) : (
+                  <CopyLaunchpadIcon width="14px" height="14px" color={colors.textLaunchpadLink} />
+                )}
               </Box>
             </Flex>
           </Flex>
@@ -414,7 +441,7 @@ export default function Info({
             </Text>
           </Flex>
           <Flex alignItems="center" justifyContent="space-between" gap={1}>
-            Fee:
+            Trade Fee:
             <Flex alignItems="center" gap="1">
               {(Number(mintInfo.configInfo.tradeFeeRate) + Number(mintInfo.platformInfo.feeRate)) / 10000}%
               <Tooltip
@@ -432,15 +459,21 @@ export default function Info({
             Platform:
             <Flex alignItems="center" gap="1">
               <Image width="16px" src={mintInfo.platformInfo.img} /> {mintInfo.platformInfo.name}
+              <a href={`${explorerUrl}/account/${mintInfo.mint}`} target="_blank" rel="noreferrer">
+                <ExternalLink width="14px" height="14px" />
+              </a>
             </Flex>
           </Flex>
         </Flex>
       </Box>
 
-      <Box
+      <Flex
+        direction="column"
         background={isLight ? '#F5F8FF' : '#ABC4FF14'}
+        mt={4}
         px={4}
         py={5}
+        gap={1}
         borderRadius="4px"
         sx={
           isLight
@@ -449,6 +482,7 @@ export default function Info({
               }
             : {}
         }
+        fontSize="sm"
       >
         <Flex alignItems="center" justifyContent="space-between" color={colors.textSecondary} gap={1}>
           Quote Token:
@@ -461,18 +495,97 @@ export default function Info({
           </Flex>
         </Flex>
         <Flex alignItems="center" justifyContent="space-between" color={colors.textSecondary} gap={1}>
-          Vesting Duration:
           <Flex alignItems="center" gap="1">
-            {vestingDuration.text || '--'}
+            Platform LP fee share
+            {/* <Tooltip
+              hasArrow
+              placement="top"
+              label={`After the token graduates, token creators can claim ${
+                mintInfo.platformInfo ? (Number((mintInfo.platformInfo as any).creatorScale) / 1000000) * 100 : 10
+              }% of LP fees from AMM pool trades.`}
+            >
+              <QuestionCircleIcon color={colors.lightPurple} />
+            </Tooltip> */}
+          </Flex>
+          <Flex alignItems="center" gap="1">
+            {poolInfo?.migrateType === 1 ? 'Yes' : 'No'}
           </Flex>
         </Flex>
         <Flex alignItems="center" justifyContent="space-between" color={colors.textSecondary} gap={1}>
-          Cliff:
           <Flex alignItems="center" gap="1">
-            {cliffPeriod.text || '--'}
+            Tokens vesting
+            <Tooltip hasArrow placement="top" label="The percentage of tokens that will be locked and vested.">
+              <QuestionCircleIcon color={colors.lightPurple} />
+            </Tooltip>
+          </Flex>
+          <Flex alignItems="center" gap="1">
+            {new Decimal(poolInfo?.vestingSchedule.totalLockedAmount.toString() ?? 0)
+              .div(poolInfo?.supply.toString() ?? 1)
+              .mul(100)
+              .toNumber()}
+            %
           </Flex>
         </Flex>
-      </Box>
+        {mintInfo.totalLockedAmount !== 0 ? (
+          <>
+            <Flex alignItems="center" justifyContent="space-between" color={colors.textSecondary} gap={1}>
+              <Flex alignItems="center" gap="1">
+                Cliff
+                <Tooltip hasArrow placement="top" label={'The number of days after token migrates before locked tokens start vesting.'}>
+                  <QuestionCircleIcon color={colors.lightPurple} />
+                </Tooltip>
+              </Flex>
+              <Tooltip
+                hasArrow
+                placement="top"
+                label={
+                  isLanded && mintInfo.priceFinalTime
+                    ? Number(mintInfo.cliffPeriod) === 0
+                      ? 'No Cliff Period'
+                      : `Est. cliff start and end dates: ${dayjs(mintInfo.priceFinalTime * 1000).format('MM/DD/YY')} - ${dayjs(
+                          mintInfo.priceFinalTime * 1000
+                        )
+                          .add(Number(mintInfo.cliffPeriod), 'seconds')
+                          .format('MM/DD/YY')}`
+                    : 'Cliff and vesting times start at token graduation.'
+                }
+              >
+                <Flex alignItems="center" gap="1" textDecoration="underline">
+                  {cliffPeriod.text || '--'}
+                </Flex>
+              </Tooltip>
+            </Flex>
+            <Flex alignItems="center" justifyContent="space-between" color={colors.textSecondary} gap={1}>
+              <Flex alignItems="center" gap="1">
+                Vesting Duration
+                <Tooltip hasArrow placement="top" label={'The number of days after vesting starts until vesting ends.'}>
+                  <QuestionCircleIcon color={colors.lightPurple} />
+                </Tooltip>
+              </Flex>
+              <Tooltip
+                hasArrow
+                placement="top"
+                label={
+                  isLanded && mintInfo.priceFinalTime
+                    ? Number(mintInfo.unlockPeriod)
+                      ? 'No Vesting Duration'
+                      : `Est. vesting start and end dates: ${dayjs(mintInfo.priceFinalTime * 1000)
+                          .add(Number(mintInfo.cliffPeriod), 'seconds')
+                          .format('MM/DD/YY')} - ${dayjs(mintInfo.priceFinalTime * 1000)
+                          .add(Number(mintInfo.cliffPeriod), 'seconds')
+                          .add(Number(mintInfo.unlockPeriod), 'seconds')
+                          .format('MM/DD/YY')}`
+                    : 'Cliff and vesting times start at token graduation.'
+                }
+              >
+                <Flex alignItems="center" gap="1" textDecoration="underline">
+                  {vestingDuration.text || '--'}
+                </Flex>
+              </Tooltip>
+            </Flex>
+          </>
+        ) : null}
+      </Flex>
     </Box>
   )
 }

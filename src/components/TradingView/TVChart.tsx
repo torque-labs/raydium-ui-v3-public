@@ -180,7 +180,8 @@ export default function TVChart({
         'trading_account_manager',
         'hide_main_series_symbol_from_indicator_legend',
         'display_market_status',
-        'volume_force_overlay'
+        'volume_force_overlay',
+        'header_undo_redo'
       ],
       enabled_features: [
         'side_toolbar_in_fullscreen_mode',
@@ -240,6 +241,36 @@ export default function TVChart({
 
     let lastInterval = 0
     let lastEntityId: EntityId
+    let mCapButton: null | HTMLElement
+
+    // landed launchpad
+    if (birdeye && mintInfo) {
+      tvChartWidget.headerReady().then(function () {
+        mCapButton = tvChartWidget.createButton()
+        mCapButton.style.cursor = 'pointer'
+        mCapButton.innerHTML = "<span style='color:#2937e8'>Price</span>/<span>Mcap</span>"
+
+        mCapButton.addEventListener('click', function () {
+          const isMarketCap = tvChartWidget.activeChart().symbolExt()?.name.includes('marketcap')
+          tvChartWidget.setSymbol(`${poolId}${isMarketCap ? '' : '_marketcap'}`, tvChartWidget.activeChart().resolution(), () => {
+            // mCapButton!.innerHTML = `<span ${isMarketCap ? "style='color:#2937e8'" : ''}>Price</span> / <span ${
+            //   !isMarketCap ? "style='color:#2937e8'" : ''
+            // }>Mcap</span>`
+          })
+        })
+
+        tvChartWidget.activeChart().onSymbolChanged().unsubscribeAll(null)
+        tvChartWidget
+          .activeChart()
+          .onSymbolChanged()
+          .subscribe(null, () => {
+            const isMarketCap = tvChartWidget.activeChart().symbolExt()?.name.includes('marketcap')
+            mCapButton!.innerHTML = `<span ${isMarketCap ? '' : "style='color:#2937e8'"}>Price</span> / <span ${
+              !isMarketCap ? '' : "style='color:#2937e8'"
+            }>Mcap</span>`
+          })
+      })
+    }
 
     tvChartWidget.onChartReady(() => {
       const chartIns = tvChartWidget.activeChart()
@@ -358,6 +389,7 @@ export default function TVChart({
       // if (onTickCbk) tvChartWidget.unsubscribe('onTick', onTickCbk)
       setArrowListener(undefined)
       tvChartWidget.remove()
+
       clearInterval(lastInterval)
     }
   }, [poolId, birdeye, id, theme, connection, reloadChartTag, mintInfo?.mint, mintBInfo?.address, curveType])

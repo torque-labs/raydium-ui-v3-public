@@ -1,4 +1,4 @@
-import { Flex, Grid, Text } from '@chakra-ui/react'
+import { Box, Flex, Grid, Text, Tooltip } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables/colors'
 import { useTranslation } from 'react-i18next'
 import ExternalLink from '@/icons/misc/ExternalLink'
@@ -10,8 +10,19 @@ import Government from '@/icons/misc/Government'
 import Dev from '@/icons/misc/Dev'
 import useHolders from '@/hooks/launchpad/useHolders'
 import { MintInfo } from '../type'
+import RaydiumLogo from '@/icons/RaydiumLogo'
 
-const Holders = ({ mintInfo, mintVault, ownerAta }: { mintInfo?: MintInfo; mintVault?: string; ownerAta?: string }) => {
+const Holders = ({
+  mintInfo,
+  mintVault,
+  ownerAta,
+  poolVault
+}: {
+  mintInfo?: MintInfo
+  mintVault?: string
+  ownerAta?: string
+  poolVault?: string
+}) => {
   const { t } = useTranslation()
   const explorerUrl = useAppStore((s) => s.explorerUrl)
   const { data: holders } = useHolders({ mint: mintInfo?.mint, supply: mintInfo?.supply })
@@ -88,12 +99,20 @@ const Holders = ({ mintInfo, mintVault, ownerAta }: { mintInfo?: MintInfo; mintV
               <a href={`${explorerUrl}/account/${item.address}`} target="_blank" rel="noreferrer">
                 <ExternalLink width="20px" height="20px" />
               </a>
+              {item.address === poolVault && (
+                <Tooltip hasArrow placement="top" label={t('launchpad.raydium_pool')}>
+                  <Box>
+                    <RaydiumLogo width="20" height="20" />
+                  </Box>
+                </Tooltip>
+              )}
               {item.address === ownerAta && <Dev />}
               {item.address === mintVault && (
-                <Flex alignItems="center" color="#8C6EEF" fontSize="xs">
-                  <Government />
-                  <Text whiteSpace="nowrap">{t('launchpad.bongding_curve')}</Text>
-                </Flex>
+                <Tooltip hasArrow placement="top" label={t('launchpad.bongding_curve')}>
+                  <Box>
+                    <Government />
+                  </Box>
+                </Tooltip>
               )}
             </Flex>
             <Text fontSize="sm" lineHeight="18px" textAlign="right">

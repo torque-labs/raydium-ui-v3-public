@@ -495,16 +495,16 @@ export default function Launchpad() {
                           ⭐️
                         </Flex>
                       )
+                    },
+                    {
+                      word: 'graduated',
+                      word_with_strength: (
+                        <Flex alignItems="center" gap="10px">
+                          {isDesktopSmall ? <Text fontSize="sm">Graduated</Text> : null}
+                          🎓
+                        </Flex>
+                      )
                     }
-                    // {
-                    //   word: 'graduated',
-                    //   word_with_strength: (
-                    //     <Flex alignItems="center" gap="10px">
-                    //       {isDesktopSmall ? <Text fontSize="sm">Graduated</Text> : null}
-                    //       🎓
-                    //     </Flex>
-                    //   )
-                    // }
                   ]}
                 />
                 <PlatformButton defaultValue={platform} onChange={handlePlatformChange} />

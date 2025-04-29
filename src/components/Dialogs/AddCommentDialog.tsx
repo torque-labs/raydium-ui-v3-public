@@ -31,6 +31,7 @@ export const AddCommentDialog = ({ setIsOpen, poolId, onUploadSuccess }: DialogP
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [comment, setComment] = useState('')
   const [file, setFile] = useState<File | undefined>()
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const { getTokenFromStorage } = useWalletSign()
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -40,6 +41,7 @@ export const AddCommentDialog = ({ setIsOpen, poolId, onUploadSuccess }: DialogP
 
   const handleImageUpload = (file: File) => {
     setFile(file)
+    setUploadError(null)
   }
 
   const handlePostComment = async () => {
@@ -149,8 +151,20 @@ export const AddCommentDialog = ({ setIsOpen, poolId, onUploadSuccess }: DialogP
             <ImageUploader
               onImageUpload={handleImageUpload}
               acceptedFileTypes={['image/jpeg', 'image/png', 'image/gif']}
-              maxFileSizeInMB={5}
+              maxFileSizeInMB={1}
+              onError={(error) => {
+                if (error) {
+                  setUploadError(error)
+                } else {
+                  setUploadError(null)
+                }
+              }}
             />
+            {uploadError && (
+              <Text mt="1" variant="error">
+                {uploadError}
+              </Text>
+            )}
           </Grid>
         </ModalBody>
         <ModalFooter gap={1} flexDirection="column">

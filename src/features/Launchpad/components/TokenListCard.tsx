@@ -383,6 +383,7 @@ const TokenCard = ({
                       maximumDecimalTrailingZeroes: 4
                     })}
                   </Text>
+                  {token.finishingRate >= HEATING_RATE ? '🔥' : ''}
                   {token.migrateAmmId ? '🎓' : ''}
                 </Flex>
 

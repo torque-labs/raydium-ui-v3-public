@@ -69,4 +69,7 @@ export interface MintInfo {
   totalLockedAmount: number
 
   defaultCurve?: boolean
+
+  totalSellA: string
+  totalFundRaisingB: string
 }

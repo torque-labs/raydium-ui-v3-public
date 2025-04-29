@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-const TokenDetail = dynamic(() => import('@/features/Launchpad/TokenDetail'), { ssr: false })
+const TokenDetail = dynamic(() => import('@/features/Launchpad/TokenDetail'))
 
 function CoinDetailPage() {
   return <TokenDetail />

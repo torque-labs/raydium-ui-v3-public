@@ -898,7 +898,7 @@
     "include_nsfw": "Include NSFW",
     "pool_migrating": "<0>{{token}}</0> has reached 100% progress. Liquidity should graduate to a Raydium pool within 5 mins.",
     "pool_graduated": "<0>{{token}}</0> is now graduated on Raydium! 🎉 You can swap this token on Raydium with any available token.",
-    "bongding_curve": "Bongding Curve",
+    "bongding_curve": "Bonding Curve",
     "referrer_fee_earned": "Referral fee earned",
     "congratulations": "Congratulations!",
     "successfully_created_token": "You’ve successfully created a token!",
@@ -906,6 +906,7 @@
     "configure_vesting": "Configure vesting wallet address",
     "vesting_description": "You must set an address to receive vesting tokens. Modify this any time on your created tokens page.",
     "view_token": "View token",
-    "token_details_description": "Go to the token page to see progress, view details, trade, comment and more!"
+    "token_details_description": "Go to the token page to see progress, view details, trade, comment and more!",
+    "raydium_pool": "Raydium pool"
   }
 }

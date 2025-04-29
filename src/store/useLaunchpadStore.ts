@@ -345,8 +345,8 @@ export const useLaunchpadStore = createStore<LaunchpadState>((set, get) => ({
       platformFeeRate,
 
       supply,
-      totalSellA,
-      totalFundRaisingB,
+      totalSellA: totalSellA ? new BN(totalSellA) : undefined,
+      totalFundRaisingB: totalFundRaisingB ? new BN(totalFundRaisingB) : undefined,
       totalLockedAmount,
       cliffPeriod,
       unlockPeriod,

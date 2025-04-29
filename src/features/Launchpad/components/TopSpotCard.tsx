@@ -81,9 +81,7 @@ export const TopSpotCard = ({
   const MotionBox = motion(Box)
   const time = useTime()
 
-  const rotate = useTransform(time, [0, 3000], [0, 360], {
-    clamp: false
-  })
+  const rotate = useTransform(time, (t) => ((t % 3000) / 3000) * 360)
   const rotatingBg = useTransform(rotate, (r) => {
     return isLight
       ? `conic-gradient(from ${r}deg, #DA2EEF, #2B6AFF, #39D0D8, #DA2EEF)`

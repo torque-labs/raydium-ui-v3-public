@@ -37,6 +37,8 @@ import { LocalStorageKey } from '@/constants/localStorage'
 import { toastSubject } from '@/hooks/toast/useGlobalToast'
 import { getImgProxyUrl } from '@/utils/url'
 import { isMobile } from 'react-device-detect'
+import useFetchRpcPoolData from '@/hooks/pool/amm/useFetchRpcPoolData'
+import useFetchCpmmRpcPoolData from '@/hooks/pool/amm/useFetchCpmmRpcPoolData'
 
 enum Tab {
   Comments = 'Comments',
@@ -135,6 +137,18 @@ const TokenDetail = () => {
     notRefresh: isLanded
   })
 
+  const { poolKeys: ammPoolData } = useFetchRpcPoolData({
+    shouldFetch: isLanded && poolInfo?.migrateType === 0,
+    poolId: mintInfo?.migrateAmmId
+  })
+
+  const { data: cpmmPoolData } = useFetchCpmmRpcPoolData({
+    shouldFetch: isLanded && poolInfo?.migrateType === 1,
+    poolId: mintInfo?.migrateAmmId
+  })
+
+  const poolVault = ammPoolData?.vault.A?.toString() || cpmmPoolData?.vaultA?.toString()
+
   const configInfo = useMemo(
     () => (mintInfo?.configInfo ? ToLaunchPadConfig(mintInfo.configInfo) : rpcConfigInfo),
     [mintInfo?.configInfo.pubKey, rpcConfigInfo]
@@ -181,7 +195,7 @@ const TokenDetail = () => {
         value: Tab.Transactions
       },
       {
-        content: <Holders mintInfo={mintInfo} mintVault={mintVault} ownerAta={ownerAta} />,
+        content: <Holders mintInfo={mintInfo} mintVault={mintVault} ownerAta={ownerAta} poolVault={poolVault} />,
         label: 'Holders',
         value: Tab.Holders
       }
@@ -191,7 +205,14 @@ const TokenDetail = () => {
       baseItems.unshift({
         content: (
           <>
-            <Info mintInfo={mintInfo} poolInfo={poolInfo} marketCap={marketCap} refreshMintInfo={mutate} />
+            <Info
+              mintInfo={mintInfo}
+              poolInfo={poolInfo}
+              marketCap={marketCap}
+              isLanded={isLanded}
+              refreshMintInfo={mutate}
+              mintBPrice={mintB && data[mintB] ? new Decimal(data[mintB].value).toNumber() : undefined}
+            />
             <Flex
               justifyContent="space-between"
               alignItems="center"
@@ -243,7 +264,19 @@ const TokenDetail = () => {
     }
 
     return baseItems
-  }, [mintVault, ownerAta, isMobile, mintInfo, mintBInfo?.address, onChain, configInfo, mutate, poolInfo?.mintA])
+  }, [
+    mintVault,
+    ownerAta,
+    isMobile,
+    mintInfo,
+    mintBInfo?.address,
+    onChain,
+    configInfo,
+    mutate,
+    poolInfo?.mintA,
+    data[mintB ?? ''],
+    poolVault
+  ])
 
   useEffect(() => {
     if (!poolInfo && !mintInfo) return
@@ -477,6 +510,55 @@ const TokenDetail = () => {
             : {}
         }
       >
+        {isMobile ? (
+          <Flex px={4} mb="2" py="10px" borderRadius="8px" background="#8C6EEF33" alignItems="center" gap={8}>
+            <Text
+              fontSize="sm"
+              bgGradient={
+                isLight
+                  ? 'linear-gradient(245.22deg, #DA2EEF 7.97%, #2B6AFF 49.17%, #39D0D8 92.1%)'
+                  : 'linear-gradient(245.22deg, #FF2FC8 7.97%, #FFB12B 49.17%, #D3D839 92.1%)'
+              }
+              bgClip="text"
+            >
+              Share and earn a referral from all volume using your link
+            </Text>
+            {connected ? (
+              <CopyButton
+                value={referralUrl}
+                width="76px"
+                minWidth="76px"
+                height="28px"
+                minHeight="28px"
+                borderRadius="8px"
+                onCopy={() => {
+                  toast.close(referralRef.current)
+                  referralRef.current = Date.now()
+                  toastSubject.next({
+                    status: 'success',
+                    id: referralRef.current,
+                    title: 'Copy referral url success!',
+                    duration: 1500
+                  })
+                }}
+                background={
+                  isLight
+                    ? 'linear-gradient(245.22deg, #DA2EEF 7.97%, #2B6AFF 49.17%, #39D0D8 92.1%)'
+                    : 'linear-gradient(245.22deg, #FF2FC8 7.97%, #FFB12B 49.17%, #D3D839 92.1%)'
+                }
+                _hover={{
+                  background: isLight
+                    ? 'linear-gradient(245.22deg, #DA2EEF 7.97%, #2B6AFF 49.17%, #39D0D8 92.1%)'
+                    : 'linear-gradient(245.22deg, #FF2FC8 7.97%, #FFB12B 49.17%, #D3D839 92.1%)'
+                }}
+              >
+                Share
+              </CopyButton>
+            ) : (
+              <ConnectedButton width="fit-content" height="28px" minHeight="28px" mx="auto" fontSize="sm" />
+            )}
+          </Flex>
+        ) : null}
         <TabContent
           value={panelItems.some((item) => item.value === value) ? value : Tab.Comments}
           onValueChange={setValue}
@@ -571,7 +653,14 @@ const TokenDetail = () => {
               <ConnectedButton width="fit-content" height="28px" minHeight="28px" mx="auto" fontSize="sm" />
             )}
           </Flex>
-          <Info poolInfo={poolInfo} mintInfo={mintInfo} marketCap={marketCap} refreshMintInfo={mutate} />
+          <Info
+            poolInfo={poolInfo}
+            mintInfo={mintInfo}
+            marketCap={marketCap}
+            mintBPrice={mintB && data[mintB] ? new Decimal(data[mintB].value).toNumber() : undefined}
+            isLanded={isLanded}
+            refreshMintInfo={mutate}
+          />
         </Grid>
       </GridItem>
     </Grid>

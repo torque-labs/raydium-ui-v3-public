@@ -195,6 +195,7 @@ const JustSendIt = () => {
 
   const [isFocused] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   usePlatformInfo({ platformId: LaunchpadPoolInitParam.platformId })
 
@@ -396,11 +397,23 @@ const JustSendIt = () => {
                 <ImageUploader
                   onImageUpload={(file) => {
                     setFieldValue('file', file)
+                    setUploadError(null)
+                  }}
+                  onError={(error) => {
+                    if (error) {
+                      setUploadError(error)
+                    } else {
+                      setUploadError(null)
+                    }
                   }}
                   acceptedFileTypes={['image/jpeg', 'image/png', 'image/gif']}
-                  maxFileSizeInMB={5}
+                  maxFileSizeInMB={1}
                 />
-                {submitCount > 0 && errors.file ? (
+                {uploadError ? (
+                  <Text mt="1" variant="error">
+                    {uploadError}
+                  </Text>
+                ) : submitCount > 0 && errors.file ? (
                   <Text mt="1" variant="error">
                     {errors.file}
                   </Text>
@@ -542,6 +555,7 @@ const LaunchLabForm = () => {
   const [migrateType, setMigrateType] = useState<'amm' | 'cpmm'>('amm')
   const [lockError, setLockError] = useState<string | undefined>(undefined)
   const [supplyError, setSupplyError] = useState<string | undefined>(undefined)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const [currentStep, setCurrentStep] = useState<CreateTokenSteps>(CreateTokenSteps.Basic)
   const [isCliffEnabled, setIsCliffEnabled] = useState(false)
@@ -976,11 +990,23 @@ const LaunchLabForm = () => {
                     <ImageUploader
                       onImageUpload={(file) => {
                         setFieldValue('file', file)
+                        setUploadError(null)
+                      }}
+                      onError={(error) => {
+                        if (error) {
+                          setUploadError(error)
+                        } else {
+                          setUploadError(null)
+                        }
                       }}
                       acceptedFileTypes={['image/jpeg', 'image/png', 'image/gif']}
-                      maxFileSizeInMB={5}
+                      maxFileSizeInMB={1}
                     />
-                    {(submitCount > 0 || touched['file']) && errors.file ? (
+                    {uploadError ? (
+                      <Text mt="1" variant="error">
+                        {uploadError}
+                      </Text>
+                    ) : (submitCount > 0 || touched['file']) && errors.file ? (
                       <Text mt="1" variant="error">
                         {errors.file}
                       </Text>
@@ -1508,12 +1534,14 @@ const LaunchLabForm = () => {
                   >
                     <Flex alignItems="center" gap={1} lineHeight="20px">
                       <Text color={colors.lightPurple} fontWeight="medium">
-                        Post migration fee share
+                        Creator LP fee share
                       </Text>
                       <Tooltip
                         hasArrow
                         placement="top"
-                        label={'After the token graduates, token creators can claim 10% of LP fees from AMM pool trades.'}
+                        label={`After the token graduates, token creators can claim ${
+                          platformInfo ? (Number(platformInfo.creatorScale) / 1000000) * 100 : 10
+                        }% of LP fees from AMM pool trades.`}
                       >
                         <HelpCircle size={12} color={colors.lightPurple} />
                       </Tooltip>
