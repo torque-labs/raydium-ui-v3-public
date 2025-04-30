@@ -20,7 +20,7 @@ export default function TorqueClaimRewards({ claimOffer, campaigns }: Props) {
 
   const historicalCampaigns = useMemo(() => {
     return campaigns
-      .filter((campaign) => campaign.offers.some((offer) => offer.status !== 'ACTIVE'))
+      .filter((campaign) => !campaign.offers.some((offer) => offer.status === 'ACTIVE'))
       .sort((a, b) => {
         const aHasPending = a.offers.some((offer) => offer.status === 'PENDING')
         const bHasPending = b.offers.some((offer) => offer.status === 'PENDING')

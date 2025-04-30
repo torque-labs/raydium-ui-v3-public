@@ -45,6 +45,17 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
 
         // Optimistically update the offer status
         setOffers((prevOffers) => prevOffers.map((offer) => (offer.id === offerId ? { ...offer, status: 'PENDING' } : offer)))
+        setCampaigns((prevCampaigns) =>
+          prevCampaigns.map((campaign) =>
+            campaign.offers.some((offer) => offer.id === offerId)
+              ? {
+                  ...campaign,
+                  status: 'PENDING',
+                  offers: campaign.offers.map((offer) => (offer.id === offerId ? { ...offer, status: 'PENDING' } : offer))
+                }
+              : campaign
+          )
+        )
 
         // For now, we poll every 6 seconds for the offer status to change to DONE in crank
         const interval = setInterval(async () => {
@@ -59,11 +70,22 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
                 offer.id === offerId
                   ? {
                       ...offer,
-                      numberOfParticipants: offer.numberOfParticipants + 1,
+                      numberOfConversions: offer.numberOfConversions + 1,
                       status: 'CLAIMED',
                       txSignature: updatedCrank.transaction
                     }
                   : offer
+              )
+            )
+            setCampaigns((prevCampaigns) =>
+              prevCampaigns.map((campaign) =>
+                campaign.offers.some((offer) => offer.id === offerId)
+                  ? {
+                      ...campaign,
+                      status: 'CLAIMED',
+                      offers: campaign.offers.map((offer) => (offer.id === offerId ? { ...offer, status: 'CLAIMED' } : offer))
+                    }
+                  : campaign
               )
             )
             clearInterval(interval)
