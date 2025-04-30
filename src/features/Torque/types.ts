@@ -35,12 +35,21 @@ export type TorqueRawOffer = {
   startTime: string
   endTime: string
   eligible: boolean
+  eligibleAmount: number
   numberOfConversions: number
   metadata: {
     title: string
     description: string
   }
   distributors: TorqueDistributor[]
+  campaignId?: string
+  campaign?: TorqueCampaign
+}
+
+export type TorqueRawCampaign = {
+  id: string
+  name: string
+  description: string
 }
 
 type TorqueDistributor = {
@@ -84,10 +93,28 @@ export type TorqueOffer = {
   startTime: Dayjs
   endTime: Dayjs
   eligible: boolean
-  rewardPerUser: string
-  rewardTotal: string
-  numberOfParticipants: number
-  maxParticipants?: number
+  rewardPerUser: number
+  rewardTotal: number
+  rewardDenomination: string
+  numberOfConversions: number
+  maxParticipants: number
   txSignature?: string
   distributor?: PublicKey
+  campaignId?: string
+}
+
+export type TorqueCampaign = Pick<
+  TorqueOffer,
+  | 'id'
+  | 'name'
+  | 'description'
+  | 'rewardTotal'
+  | 'maxParticipants'
+  | 'numberOfConversions'
+  | 'rewardDenomination'
+  | 'status'
+  | 'startTime'
+  | 'endTime'
+> & {
+  offers: TorqueOffer[]
 }

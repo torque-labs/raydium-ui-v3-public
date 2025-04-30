@@ -6,37 +6,32 @@ import {
   DrawerCloseButton,
   DrawerHeader,
   DrawerBody,
-  DrawerFooter,
-  Flex,
-  Box,
   VStack,
   Spinner,
   Heading,
   HStack
 } from '@chakra-ui/react'
-import TorqueLogo from './TorqueLogo'
 import { useState } from 'react'
 import Tabs from '@/components/Tabs'
 import TorqueClaimRewards from './TorqueClaimRewards'
-import Link from 'next/link'
 import { colors } from '@/theme/cssVariables'
 import GiftIcon from '@/icons/misc/Gift'
 import ZapIcon from '@/icons/misc/Zap'
-import { TorqueOffer } from '../types'
+import { TorqueCampaign } from '../types'
 import TorqueComingSoon from './TorqueComingSoon'
 interface Props {
   isOpen: boolean
   onClose: () => void
-  offers: TorqueOffer[]
   handleClaimOffer: (offerId: string) => void
   loading: boolean
   error: string | null
+  campaigns: TorqueCampaign[]
 }
 
 const TABS = ['Claim', 'Redacted'] as const
 type TabEnum = typeof TABS[number]
 
-export default function TorqueDrawer({ isOpen, onClose, offers, handleClaimOffer, loading, error }: Props) {
+export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, loading, error, campaigns }: Props) {
   const [selectedTab, setSelectedTab] = useState<TabEnum>('Claim')
 
   if (loading) {
@@ -88,7 +83,7 @@ export default function TorqueDrawer({ isOpen, onClose, offers, handleClaimOffer
   }
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
-      {selectedTab === 'Claim' && <TorqueClaimRewards offers={offers} claimOffer={handleClaimOffer} />}
+      {selectedTab === 'Claim' && <TorqueClaimRewards claimOffer={handleClaimOffer} campaigns={campaigns} />}
       {selectedTab === 'Redacted' && <TorqueComingSoon />}
     </Wrapper>
   )
