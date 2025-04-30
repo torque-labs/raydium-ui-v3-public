@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Wallet } from '@solana/wallet-adapter-react'
-import { fetchOffersByWallet, fetchConversionsByWallet, claimOffer } from '../utils'
-import { TorqueOffer } from '../types'
+import { fetchOffersByWallet, fetchConversionsByWallet, claimOffer, setStatusBasedOnHierarchy } from '../utils'
+import { TorqueCampaign, TorqueOffer } from '../types'
 import { PublicKey } from '@solana/web3.js'
 import dayjs from 'dayjs'
 import { useToast } from '@chakra-ui/react'
@@ -17,11 +17,14 @@ const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cm9w3m8
  * @returns offers and conversions for wallet
  */
 export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined }) {
-  const tokenMap = useTokenStore((s) => s.tokenMap)
-
+  // State
   const [offers, setOffers] = useState<TorqueOffer[]>([])
+  const [campaigns, setCampaigns] = useState<TorqueCampaign[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Hooks
+  const tokenMap = useTokenStore((s) => s.tokenMap)
   const toast = useToast()
 
   const handleClaimOffer = useCallback(
@@ -42,6 +45,17 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
 
         // Optimistically update the offer status
         setOffers((prevOffers) => prevOffers.map((offer) => (offer.id === offerId ? { ...offer, status: 'PENDING' } : offer)))
+        setCampaigns((prevCampaigns) =>
+          prevCampaigns.map((campaign) =>
+            campaign.offers.some((offer) => offer.id === offerId)
+              ? {
+                  ...campaign,
+                  status: 'PENDING',
+                  offers: campaign.offers.map((offer) => (offer.id === offerId ? { ...offer, status: 'PENDING' } : offer))
+                }
+              : campaign
+          )
+        )
 
         // For now, we poll every 6 seconds for the offer status to change to DONE in crank
         const interval = setInterval(async () => {
@@ -56,11 +70,22 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
                 offer.id === offerId
                   ? {
                       ...offer,
-                      numberOfParticipants: offer.numberOfParticipants + 1,
+                      numberOfConversions: offer.numberOfConversions + 1,
                       status: 'CLAIMED',
                       txSignature: updatedCrank.transaction
                     }
                   : offer
+              )
+            )
+            setCampaigns((prevCampaigns) =>
+              prevCampaigns.map((campaign) =>
+                campaign.offers.some((offer) => offer.id === offerId)
+                  ? {
+                      ...campaign,
+                      status: 'CLAIMED',
+                      offers: campaign.offers.map((offer) => (offer.id === offerId ? { ...offer, status: 'CLAIMED' } : offer))
+                    }
+                  : campaign
               )
             )
             clearInterval(interval)
@@ -107,8 +132,8 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
         }
 
         // Calculate the rewards
-        const totalRewardsValue = distributor.totalFundAmount ?? 0
-        const rewardPerUser = distributor.distributionFunction.yIntercept
+        const rewardTotal = distributor.totalFundAmount
+        const rewardPerUser = offer.eligibleAmount
 
         // Get the token details
         const rewardToken = typeof distributor.tokenAddress === 'string' ? tokenMap.get(distributor.tokenAddress) : undefined
@@ -133,13 +158,50 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
           eligible: offer.eligible,
           txSignature: crank?.transaction,
           distributor: distributor ? new PublicKey(distributor.pubkey) : undefined,
-          rewardPerUser: `${rewardPerUser} ${rewardDenomination}`,
-          rewardTotal: `${totalRewardsValue} ${rewardDenomination}`,
-          numberOfParticipants: offer.numberOfConversions,
-          maxParticipants: distributor.crankGuard.availability.maxTotalConversions
+          rewardPerUser,
+          rewardTotal,
+          rewardDenomination,
+          numberOfConversions: offer.numberOfConversions,
+          maxParticipants: distributor.crankGuard.availability.maxTotalConversions,
+          campaignId: offer.campaignId
         }
       })
 
+      const campaigns = offersWithConversions.reduce((acc, offer) => {
+        const id = offer.campaignId ?? offer.id
+
+        if (!acc[id]) {
+          const campaign = rawOffers.find((o) => o.campaignId === id)?.campaign
+
+          acc[id] = {
+            id,
+            name: campaign?.name ?? offer.name,
+            description: campaign?.description ?? offer.description,
+            rewardTotal: offer.rewardTotal,
+            numberOfConversions: offer.numberOfConversions,
+            rewardDenomination: offer.rewardDenomination,
+            maxParticipants: offer.maxParticipants,
+            offers: [offer],
+            status: offer.status,
+            startTime: offer.startTime,
+            endTime: offer.endTime
+          }
+        } else {
+          acc[id].offers.push(offer)
+          acc[id].rewardTotal += offer.rewardTotal
+          acc[id].numberOfConversions += offer.numberOfConversions
+          acc[id].maxParticipants += offer.maxParticipants
+
+          // Only override the status if the offer is active, as the rest of the offers will have the same status
+          if (offer.status !== acc[id].status) {
+            acc[id].status = setStatusBasedOnHierarchy(offer.status, acc[id].status)
+          }
+        }
+
+        return acc
+      }, {} as Record<string, TorqueCampaign>)
+
+      setCampaigns(Object.values(campaigns))
       setOffers(offersWithConversions)
     } catch (error) {
       setError('Unable to fetch your offers at this time, please come back again later.')
@@ -157,5 +219,5 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
     fetchTorqueData()
   }, [wallet?.adapter.publicKey])
 
-  return { offers, handleClaimOffer, loading, error, activeOffersCount }
+  return { offers, handleClaimOffer, loading, error, activeOffersCount, campaigns }
 }

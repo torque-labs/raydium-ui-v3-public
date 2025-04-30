@@ -1,47 +1,45 @@
-import { Flex, Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
+import { Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
 import { useMemo } from 'react'
 import TorqueOfferCard from './TorqueOfferCard'
 import { colors } from '@/theme/cssVariables'
-import { TorqueOffer } from '../types'
+import { TorqueCampaign } from '../types'
 import HistoryIcon from '@/icons/misc/History'
 import GiftIcon from '@/icons/misc/Gift'
+import { useWallet } from '@solana/wallet-adapter-react'
 interface Props {
-  offers: TorqueOffer[]
   claimOffer: (offerId: string) => void
+  campaigns: TorqueCampaign[]
 }
 
-export default function TorqueClaimRewards({ offers, claimOffer }: Props) {
-  const claimableOffers = useMemo(() => {
-    return offers
-      .filter((offer) => offer.status === 'ACTIVE' && offer.eligible)
-      .map((offer) => ({
-        ...offer,
-        icon: (
-          <Flex w={12} h={12} sx={{ aspectRatio: '1/1' }} justify="center" align="center" bg={colors.backgroundMedium} borderRadius="md">
-            <GiftIcon color={colors.textPrimary} width={16} height={16} />
-          </Flex>
-        )
-      }))
-  }, [offers])
+export default function TorqueClaimRewards({ claimOffer, campaigns }: Props) {
+  const { wallet } = useWallet()
 
-  const historicalOffers = useMemo(() => {
-    return offers
-      .filter((offer) => offer.status !== 'ACTIVE')
-      .map((offer) => ({
-        ...offer,
-        icon: (
-          <Flex w={12} h={12} sx={{ aspectRatio: '1/1' }} justify="center" align="center" bg={colors.backgroundMedium} borderRadius="md">
-            <GiftIcon color={colors.textPrimary} width={16} height={16} />
-          </Flex>
-        )
-      }))
-  }, [offers])
+  const activeCampaigns = useMemo(() => {
+    return campaigns.filter((campaign) => campaign.offers.some((offer) => offer.status === 'ACTIVE'))
+  }, [campaigns])
+
+  const historicalCampaigns = useMemo(() => {
+    return campaigns
+      .filter((campaign) => !campaign.offers.some((offer) => offer.status === 'ACTIVE'))
+      .sort((a, b) => {
+        const aHasPending = a.offers.some((offer) => offer.status === 'PENDING')
+        const bHasPending = b.offers.some((offer) => offer.status === 'PENDING')
+        const aHasClaimed = a.offers.some((offer) => offer.status === 'CLAIMED')
+        const bHasClaimed = b.offers.some((offer) => offer.status === 'CLAIMED')
+
+        if (aHasPending && !bHasPending) return -1
+        if (!aHasPending && bHasPending) return 1
+        if (aHasClaimed && !bHasClaimed) return -1
+        if (!aHasClaimed && bHasClaimed) return 1
+        return b.endTime.diff(a.endTime)
+      })
+  }, [campaigns])
 
   return (
     <VStack gap={6} p={0} w="full">
       <Section title="Ready to Claim" icon={<GiftIcon color={colors.textSecondary} />}>
-        {claimableOffers.length > 0 ? (
-          claimableOffers.map((offer) => <TorqueOfferCard key={offer.id} {...offer} claimOffer={claimOffer} />)
+        {activeCampaigns.length > 0 ? (
+          activeCampaigns.map((campaign) => <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />)
         ) : (
           <Stack
             w="full"
@@ -54,15 +52,15 @@ export default function TorqueClaimRewards({ offers, claimOffer }: Props) {
             justify="center"
             align="center"
           >
-            <Text>You don&apos;t have any available rewards.</Text>
+            <Text>{wallet?.adapter.publicKey ? "You don't have any available rewards." : 'Connect your wallet to view your rewards.'}</Text>
           </Stack>
         )}
       </Section>
 
-      {historicalOffers && historicalOffers.length > 0 ? (
+      {historicalCampaigns && historicalCampaigns.length > 0 ? (
         <Section title="History" icon={<HistoryIcon color={colors.textSecondary} />}>
-          {historicalOffers.map((offer) => (
-            <TorqueOfferCard key={offer.id} {...offer} claimOffer={claimOffer} />
+          {historicalCampaigns.map((campaign) => (
+            <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />
           ))}
         </Section>
       ) : null}

@@ -1,4 +1,4 @@
-import { TorqueConversion, TorqueRawOffer } from './types'
+import { TorqueConversion, TorqueOffer, TorqueRawOffer } from './types'
 
 /**
  * Torque API URL
@@ -90,4 +90,18 @@ export async function fetchConversionsByWallet(wallet: string, projectId?: strin
  */
 export async function claimOffer(offerId: string, wallet: string) {
   return fetchTorqueData<{ status: string }>(TORQUE_API_ROUTES.claim(offerId), { wallet })
+}
+
+export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldStatus: TorqueOffer['status']) {
+  // Active offers should take precedence over any other status
+  if (newStatus === 'ACTIVE' || oldStatus === 'ACTIVE') {
+    return 'ACTIVE'
+  }
+
+  // Claimed offers should take precedence over Pending
+  if (newStatus === 'CLAIMED' || (newStatus === 'PENDING' && oldStatus !== 'CLAIMED')) {
+    return newStatus
+  }
+
+  return oldStatus
 }
