@@ -119,9 +119,7 @@ export default function TorqueOfferCard({
         <VStack bg={colors.backgroundMedium} borderRadius="md" p={2} w="full" gap={2}>
           <HStack w="full" gap={2} justify="space-between">
             <Text fontSize="sm">Claimed</Text>
-            <Text fontSize="sm">
-              {typeof maxParticipants === 'number' ? `${numberOfConversions} / ${maxParticipants}` : numberOfConversions}
-            </Text>
+            <Text fontSize="sm">{numberOfConversions}</Text>
           </HStack>
           {rewardPerUser ? (
             <HStack w="full" gap={2} justify="space-between">

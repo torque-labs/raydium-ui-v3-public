@@ -177,7 +177,7 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
             id,
             name: campaign?.name ?? offer.name,
             description: campaign?.description ?? offer.description,
-            rewardTotal: offer.rewardTotal,
+            rewardTotal: Number(offer.rewardTotal),
             numberOfConversions: offer.numberOfConversions,
             rewardDenomination: offer.rewardDenomination,
             maxParticipants: offer.maxParticipants,
@@ -188,7 +188,7 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
           }
         } else {
           acc[id].offers.push(offer)
-          acc[id].rewardTotal += offer.rewardTotal
+          acc[id].rewardTotal += Number(offer.rewardTotal)
           acc[id].numberOfConversions += offer.numberOfConversions
           acc[id].maxParticipants += offer.maxParticipants
 
