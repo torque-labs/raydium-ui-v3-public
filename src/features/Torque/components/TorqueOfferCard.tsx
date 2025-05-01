@@ -14,6 +14,7 @@ interface TorqueOfferCardProps extends TorqueCampaign {
 
 const twitterShareUrl = (amount: string) => {
   const safeAmount = encodeURIComponent(amount)
+  // TODO: Need to add the final twitter copy here
   return `https://twitter.com/intent/tweet?text=Thanks%20%40RaydiumProtocol%20for%20my%20${safeAmount},%20see%20if%20you%20are%20eligible%20for%20a%20reward%20too%20https%3A//raydium.io/launchpad/`
 }
 
@@ -118,9 +119,7 @@ export default function TorqueOfferCard({
         <VStack bg={colors.backgroundMedium} borderRadius="md" p={2} w="full" gap={2}>
           <HStack w="full" gap={2} justify="space-between">
             <Text fontSize="sm">Claimed</Text>
-            <Text fontSize="sm">
-              {typeof maxParticipants === 'number' ? `${numberOfConversions} / ${maxParticipants}` : numberOfConversions}
-            </Text>
+            <Text fontSize="sm">{numberOfConversions}</Text>
           </HStack>
           {rewardPerUser ? (
             <HStack w="full" gap={2} justify="space-between">
