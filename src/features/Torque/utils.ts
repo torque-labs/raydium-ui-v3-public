@@ -1,10 +1,10 @@
-import { TorqueConversion, TorqueOffer, TorqueRawOffer } from './types'
+import { TorqueConversion, TorqueLeaderboard, TorqueOffer, TorqueRawOffer } from './types'
 
 /**
  * Torque API URL
  */
-const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
-
+// const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
+const TORQUE_API_URL = 'http://localhost:3001'
 /**
  * Torque API routes
  */
@@ -92,6 +92,13 @@ export async function claimOffer(offerId: string, wallet: string) {
   return fetchTorqueData<{ status: string }>(TORQUE_API_ROUTES.claim(offerId), { wallet })
 }
 
+/**
+ * Sets the status based on the hierarchy of offer statuses
+ *
+ * @param newStatus - The new status to set
+ * @param oldStatus - The old status to compare against
+ *
+ **/
 export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldStatus: TorqueOffer['status']) {
   // Active offers should take precedence over any other status
   if (newStatus === 'ACTIVE' || oldStatus === 'ACTIVE') {
@@ -104,4 +111,104 @@ export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldS
   }
 
   return oldStatus
+}
+
+/**
+ * Fetches the leaderboard for a given wallet
+ *
+ * @param wallet - The wallet address to fetch the leaderboard for
+ *
+ * @returns Promise with the leaderboard data
+ */
+export async function fetchTorqueLeaderboard(wallet: string): Promise<TorqueLeaderboard> {
+  // TODO: Need to implement this
+  return {
+    id: 'cmLg8FRniiZfP8DkY2WxAw38',
+    name: 'Raydium Launchpad Rewards',
+    description: 'Top 15 participants in Raydium Launchpad rewards program',
+    usersPositions: wallet
+      ? {
+          rank: 5,
+          wallet,
+          amount: 1109
+        }
+      : undefined,
+    leaderboard: [
+      {
+        rank: 1,
+        wallet: 'C3ppxLp4tHGjV5xBfzR3FT9rsmaooYrdESLoTLiAj3uK',
+        amount: 120394
+      },
+      {
+        rank: 2,
+        wallet: 'DiH7xAgDMpDuwv5RrrX3ohLg8FRniiZfP8DkY2WxAw38',
+        amount: 5039
+      },
+      {
+        rank: 3,
+        wallet: 'Bmo9fCMZqZKBVtSEbjM7tGXPzBa6reCEswEAQwjK2stV',
+        amount: 3049
+      },
+      {
+        rank: 4,
+        wallet: 'D2tD7gMNPvnVbNwMKXcZgFS9nbA32Va7z1wYEBP9sMZz',
+        amount: 1293
+      },
+      {
+        rank: 5,
+        wallet: wallet ?? '4lppxLp4tHGjV5xBfzR3FT9kfmaooYrdESLoTLiAj5ld',
+        amount: 1109
+      },
+      {
+        rank: 6,
+        wallet: 'EfCX4hxwohbPmS5vwYrDf92Z6jTVyRNQ7DYgfNJDgM2S',
+        amount: 948
+      },
+      {
+        rank: 7,
+        wallet: 'DbLfDdhYYHXbvZ9EH5KzhB5BzzgK6Bnz1E7L68dnfkY1',
+        amount: 893
+      },
+      {
+        rank: 8,
+        wallet: '9gvC8ZhCP9dTMy1q4ZC7qe2WcJtbdazJ7Zn9G6drYHJX',
+        amount: 888
+      },
+      {
+        rank: 9,
+        wallet: '2UdwupHuZUetYRhVfd1aTmZ5UTwrqiPF8cPfBomjq5ZN',
+        amount: 878
+      },
+      {
+        rank: 10,
+        wallet: 'C8dgmamVYBU1prADfoQYNRS19R55towaZXoV5sqWDMUP',
+        amount: 877
+      },
+      {
+        rank: 11,
+        wallet: '9GTPq8qc8f8npyCcFvqRiD5a1tHCqDnjvM6rpvbU74LX',
+        amount: 876
+      },
+      {
+        rank: 12,
+        wallet: '2UdwupHuZUetYRhVfd1aTmZ5UTwrqiPF8cPfBomjq5ZN',
+        amount: 875
+      },
+      {
+        rank: 13,
+        wallet: 'C8dgmamVYBU1prADfoQYNRS19R55towaZXoV5sqWDMUP',
+        amount: 874
+      },
+      {
+        rank: 14,
+        wallet: '9GTPq8qc8f8npyCcFvqRiD5a1tHCqDnjvM6rpvbU74LX',
+        amount: 873
+      },
+      {
+        rank: 15,
+        wallet: '2UdwupHuZUetYRhVfd1aTmZ5UTwrqiPF8cPfBomjq5ZN',
+        amount: 872
+      }
+    ]
+  }
 }

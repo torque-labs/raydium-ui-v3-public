@@ -118,3 +118,17 @@ export type TorqueCampaign = Pick<
 > & {
   offers: TorqueOffer[]
 }
+
+export type TorqueLeaderboard = {
+  id: string
+  name: string
+  description: string
+  leaderboard: TorqueLeaderboardPosition[]
+  usersPositions?: TorqueLeaderboardPosition
+}
+
+export type TorqueLeaderboardPosition = {
+  rank: number
+  wallet: string
+  amount: number
+}
