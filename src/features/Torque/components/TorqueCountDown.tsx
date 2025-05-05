@@ -94,7 +94,7 @@ export function TorqueCountdown({ date }: TorqueCountdownProps) {
 
   return (
     <HStack>
-      {countdown.days !== undefined && <DateCell>{countdown.days}d</DateCell>}
+      {countdown.days && <DateCell>{countdown.days}d</DateCell>}
       {countdown.hours !== undefined && <DateCell>{countdown.hours}h</DateCell>}
       {countdown.minutes !== undefined && <DateCell>{countdown.minutes}m</DateCell>}
       {countdown.seconds !== undefined && <DateCell>{countdown.seconds}s</DateCell>}

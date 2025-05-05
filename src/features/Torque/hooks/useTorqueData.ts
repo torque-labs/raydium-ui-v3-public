@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 import { useToast } from '@chakra-ui/react'
 import { useTokenStore } from '@/store/useTokenStore'
 
-const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cm9w3m8xr01trju1f3lbsy3jn'
+const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cma2gy83i0003i0xjnkecgtoz'
 
 /**
  * Fetch offers and conversions for wallet
@@ -107,8 +107,7 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
   )
 
   const fetchTorqueData = useCallback(async () => {
-    // const walletAddress = wallet?.adapter.publicKey?.toString()
-    const walletAddress = 'J3QhyWTQ751mPEiEVtbgd5FEK3ExiG31buDqCuCk7L3Y'
+    const walletAddress = wallet?.adapter.publicKey?.toString()
 
     if (!walletAddress) {
       setOffers([])

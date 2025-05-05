@@ -1,27 +1,12 @@
 import { colors } from '@/theme/cssVariables'
 import { TorqueLeaderboardPosition } from '../types'
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Text,
-  Avatar,
-  Flex,
-  Stack,
-  HStack,
-  Box,
-  VStack,
-  Badge,
-  Tooltip,
-  Skeleton,
-  SkeletonText
-} from '@chakra-ui/react'
+import { Text, Flex, HStack, VStack, Badge, Tooltip, Skeleton, SkeletonText } from '@chakra-ui/react'
 import { useMemo } from 'react'
 
 interface TorqueLeaderboardCardProps extends TorqueLeaderboardPosition {
   amountDenomination: string
   isCurrentUser: boolean
+  rewardAmount?: string
 }
 
 const truncateAddress = (address: string) => {
@@ -29,7 +14,14 @@ const truncateAddress = (address: string) => {
   return `${address.slice(0, 4)}...${address.slice(-4)}`
 }
 
-export default function TorqueLeaderboardCard({ rank, wallet, amount, amountDenomination, isCurrentUser }: TorqueLeaderboardCardProps) {
+export default function TorqueLeaderboardCard({
+  rank,
+  wallet,
+  amount,
+  amountDenomination,
+  isCurrentUser,
+  rewardAmount
+}: TorqueLeaderboardCardProps) {
   const { rankColor, borderColor } = useMemo(() => {
     let rankColor
 
@@ -66,9 +58,11 @@ export default function TorqueLeaderboardCard({ rank, wallet, amount, amountDeno
           <Text fontSize="sm" color={colors.textPrimary} fontWeight="bold">
             {truncateAddress(wallet)}
           </Text>
-          <Tooltip label="The amount of rewards you'd get if you were in this position.">
-            <Badge variant="crooked">200 RAY</Badge>
-          </Tooltip>
+          {rewardAmount && (
+            <Tooltip label="The amount of rewards you'd get if you were in this position.">
+              <Badge variant="crooked">{rewardAmount}</Badge>
+            </Tooltip>
+          )}
         </HStack>
         <HStack>
           <Text fontSize="xs" w="full" color={colors.textTertiary}>

@@ -1,92 +1,45 @@
-import {
-  DrawerContent,
-  DrawerOverlay,
-  Text,
-  Drawer,
-  DrawerCloseButton,
-  DrawerHeader,
-  DrawerBody,
-  VStack,
-  Spinner,
-  Heading,
-  HStack
-} from '@chakra-ui/react'
+import { DrawerContent, DrawerOverlay, Text, Drawer, DrawerCloseButton, DrawerHeader, DrawerBody, VStack, HStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import Tabs from '@/components/Tabs'
 import TorqueClaimRewards from './TorqueClaimRewards'
-import { colors } from '@/theme/cssVariables'
 import GiftIcon from '@/icons/misc/Gift'
-import ZapIcon from '@/icons/misc/Zap'
 import { TorqueCampaign } from '../types'
 import TorqueComingSoon from './TorqueComingSoon'
 import TorqueLeaderboard from './TorqueLeaderboard'
 import LeaderboardIcon from '@/icons/misc/Leaderboard'
+import { useTorqueLeaderboard } from '../hooks/useTorqueLeaderboard'
+
 interface Props {
   isOpen: boolean
   onClose: () => void
   handleClaimOffer: (offerId: string) => void
-  loading: boolean
-  error: string | null
+  campaignsLoading: boolean
+  campaignsError: string | null
   campaigns: TorqueCampaign[]
 }
 
 const TABS = ['Leaderboard', 'Claim', 'Redacted'] as const
 type TabEnum = typeof TABS[number]
 
-export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, loading, error, campaigns }: Props) {
+export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, campaignsLoading, campaignsError, campaigns }: Props) {
   const [selectedTab, setSelectedTab] = useState<TabEnum>('Leaderboard')
+  const { leaderboard, loading: leaderboardLoading, error: leaderboardError, lastUpdated, refetching, offer } = useTorqueLeaderboard()
 
-  if (loading) {
-    return (
-      <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
-        <VStack
-          w="full"
-          spacing={4}
-          p={3}
-          minH={24}
-          borderRadius="md"
-          bg={colors.backgroundDark}
-          opacity={0.5}
-          justify="center"
-          align="center"
-        >
-          <Heading as="h3" fontSize="md">
-            Preparing your rewards...
-          </Heading>
-          <Spinner />
-        </VStack>
-      </Wrapper>
-    )
-  }
-
-  // if (error) {
-  //   return (
-  //     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
-  //       <VStack
-  //         w="full"
-  //         spacing={4}
-  //         p={3}
-  //         minH={24}
-  //         borderRadius="md"
-  //         bg={colors.backgroundDark}
-  //         opacity={0.5}
-  //         justify="center"
-  //         align="center"
-  //       >
-  //         <Heading as="h3" fontSize="md">
-  //           Unable to load rewards
-  //         </Heading>
-  //         <Text fontSize="sm" align="center">
-  //           Looks like there was an error loading your rewards. Please try again later.
-  //         </Text>
-  //       </VStack>
-  //     </Wrapper>
-  //   )
-  // }
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
-      {selectedTab === 'Leaderboard' && <TorqueLeaderboard />}
-      {selectedTab === 'Claim' && <TorqueClaimRewards claimOffer={handleClaimOffer} campaigns={campaigns} />}
+      {selectedTab === 'Leaderboard' && (
+        <TorqueLeaderboard
+          offer={offer}
+          leaderboard={leaderboard}
+          loading={leaderboardLoading}
+          error={leaderboardError}
+          lastUpdated={lastUpdated}
+          refetching={refetching}
+        />
+      )}
+      {selectedTab === 'Claim' && (
+        <TorqueClaimRewards claimOffer={handleClaimOffer} campaigns={campaigns} loading={campaignsLoading} error={campaignsError} />
+      )}
       {selectedTab === 'Redacted' && <TorqueComingSoon />}
     </Wrapper>
   )

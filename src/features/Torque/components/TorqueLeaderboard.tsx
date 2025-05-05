@@ -1,5 +1,4 @@
 import { Heading, Stack, Text, Spinner, VStack, HStack, Badge, Skeleton, SkeletonText } from '@chakra-ui/react'
-import { useTorqueLeaderboard } from '../hooks/useTorqueLeaderboard'
 import TorqueLeaderboardCard, { TorqueLeaderboardCardSkeleton } from './TorqueLeaderboardCard'
 import { colors } from '@/theme/cssVariables'
 import { useWallet } from '@solana/wallet-adapter-react'
@@ -7,15 +6,49 @@ import { TorqueCountdown } from './TorqueCountDown'
 import dayjs from 'dayjs'
 import LeaderboardIcon from '@/icons/misc/Leaderboard'
 import MedalIcon from '@/icons/misc/Medal'
+import { TorqueRawOffer, TorqueLeaderboard as TorqueLeaderboardType, TorqueLeaderboardOffer } from '../types'
 
-export default function TorqueLeaderboard() {
+interface TorqueLeaderboardProps {
+  offer?: TorqueLeaderboardOffer
+  leaderboard?: TorqueLeaderboardType
+  loading: boolean
+  error: string | null
+  lastUpdated: Date
+  refetching: boolean
+}
+
+export default function TorqueLeaderboard({ offer, leaderboard, loading, error, lastUpdated, refetching }: TorqueLeaderboardProps) {
   const wallet = useWallet()
-  const { leaderboard, loading, error, refetching } = useTorqueLeaderboard()
 
-  if (loading) {
+  if (loading || !leaderboard) {
     return (
       <Wrapper>
         <TorqueLeaderboardSkeleton />
+      </Wrapper>
+    )
+  }
+
+  if (error) {
+    return (
+      <Wrapper>
+        <VStack
+          w="full"
+          spacing={4}
+          p={3}
+          minH={24}
+          borderRadius="md"
+          bg={colors.backgroundDark}
+          opacity={0.7}
+          justify="center"
+          align="center"
+        >
+          <Heading as="h3" fontSize="md">
+            Unable to load leaderboard
+          </Heading>
+          <Text fontSize="sm" align="center">
+            Looks like there was an error loading the leaderboard. Please try again later.
+          </Text>
+        </VStack>
       </Wrapper>
     )
   }
@@ -27,21 +60,23 @@ export default function TorqueLeaderboard() {
           <Heading as="h3" fontSize="md">
             {leaderboard?.name}
           </Heading>
-          <Badge variant="crooked">4206969 RAY</Badge>
+          <Badge variant="crooked">
+            {offer?.rewardTotal} {offer?.rewardDenomination}
+          </Badge>
         </HStack>
         <Text fontSize="xs" w="full" color={colors.textTertiary}>
-          {leaderboard?.description}
+          {offer?.description}
         </Text>
         <HStack w="full" justifyContent={'space-between'}>
           <Text fontSize="xs" w="full" color={colors.textTertiary}>
-            Next distribution in:
+            Snapshot in:
           </Text>
-          <TorqueCountdown date={dayjs().add(3, 'hour')} />
+          <TorqueCountdown date={leaderboard?.endTime} />
         </HStack>
       </VStack>
 
       <Section title="Your Position" icon={<MedalIcon />}>
-        {leaderboard && leaderboard.usersPositions ? (
+        {leaderboard.usersPositions ? (
           <TorqueLeaderboardCard {...leaderboard.usersPositions} amountDenomination="SOL" isCurrentUser={true} />
         ) : (
           <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
@@ -53,29 +88,40 @@ export default function TorqueLeaderboard() {
           </Stack>
         )}
       </Section>
-      <Section title="Leaderboard" icon={<LeaderboardIcon />}>
-        {leaderboard &&
-          leaderboard.leaderboard.map((position) => (
-            <TorqueLeaderboardCard
-              key={position.rank}
-              {...position}
-              amountDenomination="SOL"
-              isCurrentUser={position.wallet === leaderboard.usersPositions?.wallet}
-            />
-          ))}
+      <Section
+        title="Leaderboard"
+        icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
+        text={`Last updated: ${dayjs(lastUpdated).format('h:mm:ss A')}`}
+      >
+        {leaderboard.leaderboard.map((position, index) => (
+          <TorqueLeaderboardCard
+            key={position.rank}
+            {...position}
+            amountDenomination="SOL"
+            isCurrentUser={position.wallet === leaderboard.usersPositions?.wallet}
+            rewardAmount={offer?.rewardsPerPosition[index] ? `${offer?.rewardsPerPosition[index]} ${offer?.rewardDenomination}` : undefined}
+          />
+        ))}
       </Section>
     </Wrapper>
   )
 }
 
-function Section({ children, title, icon }: { children: React.ReactNode; title: string; icon?: React.ReactNode }) {
+function Section({ children, title, icon, text }: { children: React.ReactNode; title: string; icon?: React.ReactNode; text?: string }) {
   return (
     <VStack gap={2} p={0} w="full" align="flex-start">
-      <HStack gap={2} justifyContent={'flex-start'} alignItems={'center'}>
-        {icon}
-        <Heading as="h3" fontSize="md" alignSelf="flex-start">
-          {title}
-        </Heading>
+      <HStack gap={2} justifyContent={'space-between'} alignItems={'center'} w="full">
+        <HStack gap={2} alignItems={'center'}>
+          {icon}
+          <Heading as="h3" fontSize="md" alignSelf="flex-start">
+            {title}
+          </Heading>
+        </HStack>
+        {text && (
+          <Text fontSize="xs" color={colors.textTertiary}>
+            {text}
+          </Text>
+        )}
       </HStack>
       {children}
     </VStack>

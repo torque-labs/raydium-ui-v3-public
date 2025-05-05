@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { TorqueConversion, TorqueLeaderboard, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
 
 /**
@@ -10,9 +11,11 @@ const TORQUE_API_URL = 'http://localhost:3001'
  */
 const TORQUE_API_ROUTES = {
   offers: (wallet: string) => `/offer/wallet/${wallet}` as const,
+  offer: (offerId: string) => `/offer/${offerId}` as const,
   conversions: (wallet: string) => `/conversions/wallet/${wallet}` as const,
   claim: (offerId: string) => `/claim/${offerId}` as const,
-  leaderboard: (leaderboardId: string) => `/leaderboard/${leaderboardId}` as const
+  leaderboard: (leaderboardId: string) => `/leaderboard/${leaderboardId}` as const,
+  audience: (projectId: string, audienceId: string) => `/projects/${projectId}/audience/${audienceId}` as const
 }
 
 /**
@@ -93,6 +96,10 @@ export async function claimOffer(offerId: string, wallet: string) {
   return fetchTorqueData<{ status: string }>(TORQUE_API_ROUTES.claim(offerId), { wallet })
 }
 
+export async function fetchOffer(offerId: string) {
+  return fetchTorqueData<TorqueRawOffer>(TORQUE_API_ROUTES.offer(offerId))
+}
+
 /**
  * Sets the status based on the hierarchy of offer statuses
  *
@@ -123,4 +130,32 @@ export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldS
  */
 export async function fetchTorqueLeaderboard(leaderboardId: string): Promise<TorqueRawLeaderboard> {
   return fetchTorqueData<TorqueRawLeaderboard>(TORQUE_API_ROUTES.leaderboard(leaderboardId))
+}
+
+// TODO: Improve this function
+export async function calculateLeaderboardTimes(leaderboardConfig: TorqueRawLeaderboard['config']) {
+  const startTime = dayjs(leaderboardConfig.startDate).utc()
+  const endTime = leaderboardConfig.endDate ? dayjs(leaderboardConfig.endDate).utc() : dayjs().utc()
+
+  // TODO: Handle weekly leaderboards
+  if (leaderboardConfig.interval !== 'DAILY') {
+    return {
+      startTime,
+      endTime
+    }
+  }
+
+  console.log('this!', startTime.isBefore(endTime))
+
+  if (startTime.isBefore(endTime)) {
+    return {
+      startTime: dayjs().subtract(1, 'day').utc(),
+      endTime: dayjs().add(1, 'day').utc()
+    }
+  }
+
+  return {
+    startTime,
+    endTime: startTime.add(1, 'day')
+  }
 }

@@ -6,12 +6,14 @@ import { TorqueCampaign } from '../types'
 import HistoryIcon from '@/icons/misc/History'
 import GiftIcon from '@/icons/misc/Gift'
 import { useWallet } from '@solana/wallet-adapter-react'
-interface Props {
+interface TorqueClaimRewardsProps {
   claimOffer: (offerId: string) => void
   campaigns: TorqueCampaign[]
+  loading: boolean
+  error: string | null
 }
 
-export default function TorqueClaimRewards({ claimOffer, campaigns }: Props) {
+export default function TorqueClaimRewards({ claimOffer, campaigns, loading, error }: TorqueClaimRewardsProps) {
   const { wallet } = useWallet()
 
   const activeCampaigns = useMemo(() => {
