@@ -107,7 +107,8 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
   )
 
   const fetchTorqueData = useCallback(async () => {
-    const walletAddress = wallet?.adapter.publicKey?.toString()
+    // const walletAddress = wallet?.adapter.publicKey?.toString()
+    const walletAddress = 'J3QhyWTQ751mPEiEVtbgd5FEK3ExiG31buDqCuCk7L3Y'
 
     if (!walletAddress) {
       setOffers([])

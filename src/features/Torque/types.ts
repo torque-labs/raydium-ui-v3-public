@@ -52,6 +52,21 @@ export type TorqueRawCampaign = {
   description: string
 }
 
+export type TorqueRawLeaderboard = {
+  config: {
+    id: string
+    name: string
+    startDate: string
+    endDate: string
+    limit: number
+    interval: 'DAILY' | 'WEEKLY'
+  }
+  entries: {
+    user: string
+    value: number
+  }[]
+}
+
 type TorqueDistributor = {
   pubkey: string
   status: 'DRAFT' | 'ACTIVE' | 'CLOSED'
@@ -122,7 +137,6 @@ export type TorqueCampaign = Pick<
 export type TorqueLeaderboard = {
   id: string
   name: string
-  description: string
   leaderboard: TorqueLeaderboardPosition[]
   usersPositions?: TorqueLeaderboardPosition
 }
