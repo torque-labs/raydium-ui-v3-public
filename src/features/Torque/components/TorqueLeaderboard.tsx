@@ -90,7 +90,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
       <Section
         title="Leaderboard"
         icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
-        text={`Last updated: ${dayjs(lastUpdated).format('h:mm:ss A')}`}
+        // text={`Last updated: ${dayjs(lastUpdated).format('h:mm:ss A')}`}
       >
         {leaderboard.leaderboard.map((position) => (
           <TorqueLeaderboardCard

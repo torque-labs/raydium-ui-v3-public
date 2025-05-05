@@ -1,6 +1,6 @@
-import { Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
+import { Heading, HStack, Skeleton, Stack, Text, VStack } from '@chakra-ui/react'
 import { useMemo } from 'react'
-import TorqueOfferCard from './TorqueOfferCard'
+import TorqueOfferCard, { TorqueOfferCardSkeleton } from './TorqueOfferCard'
 import { colors } from '@/theme/cssVariables'
 import { TorqueCampaign } from '../types'
 import HistoryIcon from '@/icons/misc/History'
@@ -37,6 +37,37 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
       })
   }, [campaigns])
 
+  if (loading) {
+    return (
+      <VStack gap={6} p={0} w="full">
+        <TorqueClaimRewardsSkeleton />
+      </VStack>
+    )
+  }
+
+  if (error) {
+    return (
+      <VStack
+        w="full"
+        spacing={4}
+        p={3}
+        minH={24}
+        borderRadius="md"
+        bg={colors.backgroundDark}
+        opacity={0.7}
+        justify="center"
+        align="center"
+      >
+        <Heading as="h3" fontSize="md">
+          Unable to load rewards
+        </Heading>
+        <Text fontSize="sm" align="center">
+          Looks like there was an error loading the rewards. Please try again later.
+        </Text>
+      </VStack>
+    )
+  }
+
   return (
     <VStack gap={6} p={0} w="full">
       <Section title="Ready to Claim" icon={<GiftIcon color={colors.textSecondary} />}>
@@ -50,7 +81,7 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
             minH={24}
             borderRadius="md"
             bg={colors.backgroundDark}
-            opacity={0.5}
+            opacity={0.7}
             justify="center"
             align="center"
           >
@@ -59,13 +90,27 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
         )}
       </Section>
 
-      {historicalCampaigns && historicalCampaigns.length > 0 ? (
-        <Section title="History" icon={<HistoryIcon color={colors.textSecondary} />}>
-          {historicalCampaigns.map((campaign) => (
-            <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />
-          ))}
-        </Section>
-      ) : null}
+      <Section title="History" icon={<HistoryIcon color={colors.textSecondary} />}>
+        {historicalCampaigns.length > 0 ? (
+          historicalCampaigns.map((campaign) => <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />)
+        ) : (
+          <Stack
+            w="full"
+            spacing={4}
+            p={3}
+            minH={24}
+            borderRadius="md"
+            bg={colors.backgroundDark}
+            opacity={0.7}
+            justify="center"
+            align="center"
+          >
+            <Text>
+              {wallet?.adapter.publicKey ? 'Looks like there are no historical rewards.' : 'Connect your wallet to see historical rewards.'}
+            </Text>
+          </Stack>
+        )}
+      </Section>
     </VStack>
   )
 }
@@ -80,6 +125,23 @@ function Section({ children, title, icon }: { children: React.ReactNode; title: 
         </Heading>
       </HStack>
       {children}
+    </VStack>
+  )
+}
+
+function TorqueClaimRewardsSkeleton() {
+  return (
+    <VStack gap={6} p={0} w="full">
+      <Section title="Ready to Claim" icon={<GiftIcon color={colors.textSecondary} />}>
+        <TorqueOfferCardSkeleton />
+        <TorqueOfferCardSkeleton />
+      </Section>
+
+      <Section title="History" icon={<HistoryIcon color={colors.textSecondary} />}>
+        <TorqueOfferCardSkeleton />
+        <TorqueOfferCardSkeleton />
+        <TorqueOfferCardSkeleton />
+      </Section>
     </VStack>
   )
 }
