@@ -147,10 +147,18 @@ export async function fetchTorqueLeaderboard(leaderboardId: string): Promise<Tor
   return fetchTorqueData<TorqueRawLeaderboard>(TORQUE_API_ROUTES.leaderboard(leaderboardId))
 }
 
-// TODO: Improve this function
+/**
+ * Calculates the start and end times for a leaderboard based on the leaderboard config
+ *
+ * @param leaderboardConfig - The leaderboard config to calculate the start and end times for
+ *
+ * @returns Promise with the start and end times
+ */
 export async function calculateLeaderboardTimes(leaderboardConfig: TorqueRawLeaderboard['config']) {
-  const startTime = dayjs(leaderboardConfig.startDate).utc()
-  const endTime = leaderboardConfig.endDate ? dayjs(leaderboardConfig.endDate).utc() : dayjs().utc()
+  const utcOffset = dayjs().utcOffset()
+
+  const startTime = dayjs(leaderboardConfig.startDate).utcOffset(utcOffset)
+  const endTime = leaderboardConfig.endDate ? dayjs(leaderboardConfig.endDate).utcOffset(utcOffset) : dayjs().utc()
 
   // TODO: Handle weekly leaderboards
   if (leaderboardConfig.interval !== 'DAILY') {
@@ -160,12 +168,13 @@ export async function calculateLeaderboardTimes(leaderboardConfig: TorqueRawLead
     }
   }
 
-  console.log('this!', startTime.isBefore(endTime))
-
   if (startTime.isBefore(endTime)) {
+    // Get midnight of the current day
+    const currentDay = dayjs().utcOffset(utcOffset).startOf('day')
+
     return {
-      startTime: dayjs().subtract(1, 'day').utc(),
-      endTime: dayjs().add(1, 'day').utc()
+      startTime: currentDay,
+      endTime: currentDay.add(1, 'day')
     }
   }
 

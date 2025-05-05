@@ -168,7 +168,7 @@ export type TorqueLeaderboardPosition = {
 export type TorqueLeaderboardOffer = {
   name: string
   description: string
-  rewardTotal: number
+  totalRewards: number
   rewardDenomination: string
   positionRewards: Record<number, number>
 }

@@ -4,8 +4,7 @@ import { TorqueLeaderboard, TorqueLeaderboardOffer } from '../types'
 import { calculateLeaderboardTimes, fetchTorqueLeaderboard, fetchLeaderboardOfferDetails } from '../utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
-// const LEADERBOARD_ID = process.env.NEXT_PUBLIC_TORQUE_LEADERBOARD_ID || 'cmaaz4o7b00006ddrm6tdii0h'
-const LEADERBOARD_ID = process.env.NEXT_PUBLIC_TORQUE_LEADERBOARD_ID || 'cma9vwxte00046dd0me3f7clp'
+const LEADERBOARD_ID = process.env.NEXT_PUBLIC_TORQUE_LEADERBOARD_ID || 'cmaaz4o7b00006ddrm6tdii0h'
 
 export function useTorqueLeaderboard() {
   const interval = useRef<NodeJS.Timeout | null>(null)
@@ -49,7 +48,7 @@ export function useTorqueLeaderboard() {
         setLeaderboard({
           id: leaderboard.config.id,
           name: offerDetailsRef.current?.name ?? leaderboard.config.name,
-          totalRewards: offerDetailsRef.current?.rewardTotal,
+          totalRewards: offerDetailsRef.current?.totalRewards,
           rewardDenomination: offerDetailsRef.current?.rewardDenomination,
           description: offerDetailsRef.current?.description,
           startTime,
@@ -73,8 +72,8 @@ export function useTorqueLeaderboard() {
 
     interval.current = setInterval(() => {
       fetchLeaderboard(true)
-      // Refetch every 20 seconds
-    }, 20000)
+      // Refetch every 1 minute
+    }, 1 * 60 * 1000)
 
     return () => {
       if (interval.current) {
