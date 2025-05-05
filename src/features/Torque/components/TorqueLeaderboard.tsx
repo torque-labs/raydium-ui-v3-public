@@ -6,10 +6,9 @@ import { TorqueCountdown } from './TorqueCountDown'
 import dayjs from 'dayjs'
 import LeaderboardIcon from '@/icons/misc/Leaderboard'
 import MedalIcon from '@/icons/misc/Medal'
-import { TorqueRawOffer, TorqueLeaderboard as TorqueLeaderboardType, TorqueLeaderboardOffer } from '../types'
+import { TorqueLeaderboard as TorqueLeaderboardType } from '../types'
 
 interface TorqueLeaderboardProps {
-  offer?: TorqueLeaderboardOffer
   leaderboard?: TorqueLeaderboardType
   loading: boolean
   error: string | null
@@ -17,7 +16,7 @@ interface TorqueLeaderboardProps {
   refetching: boolean
 }
 
-export default function TorqueLeaderboard({ offer, leaderboard, loading, error, lastUpdated, refetching }: TorqueLeaderboardProps) {
+export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpdated, refetching }: TorqueLeaderboardProps) {
   const wallet = useWallet()
 
   if (loading || !leaderboard) {
@@ -61,11 +60,11 @@ export default function TorqueLeaderboard({ offer, leaderboard, loading, error, 
             {leaderboard?.name}
           </Heading>
           <Badge variant="crooked">
-            {offer?.rewardTotal} {offer?.rewardDenomination}
+            {leaderboard?.totalRewards} {leaderboard?.rewardDenomination}
           </Badge>
         </HStack>
         <Text fontSize="xs" w="full" color={colors.textTertiary}>
-          {offer?.description}
+          {leaderboard?.description}
         </Text>
         <HStack w="full" justifyContent={'space-between'}>
           <Text fontSize="xs" w="full" color={colors.textTertiary}>
@@ -93,13 +92,12 @@ export default function TorqueLeaderboard({ offer, leaderboard, loading, error, 
         icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
         text={`Last updated: ${dayjs(lastUpdated).format('h:mm:ss A')}`}
       >
-        {leaderboard.leaderboard.map((position, index) => (
+        {leaderboard.leaderboard.map((position) => (
           <TorqueLeaderboardCard
             key={position.rank}
             {...position}
             amountDenomination="SOL"
             isCurrentUser={position.wallet === leaderboard.usersPositions?.wallet}
-            rewardAmount={offer?.rewardsPerPosition[index] ? `${offer?.rewardsPerPosition[index]} ${offer?.rewardDenomination}` : undefined}
           />
         ))}
       </Section>

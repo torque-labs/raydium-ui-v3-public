@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { TorqueConversion, TorqueLeaderboard, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
+import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
 
 /**
  * Torque API URL
@@ -96,8 +96,23 @@ export async function claimOffer(offerId: string, wallet: string) {
   return fetchTorqueData<{ status: string }>(TORQUE_API_ROUTES.claim(offerId), { wallet })
 }
 
-export async function fetchOffer(offerId: string) {
-  return fetchTorqueData<TorqueRawOffer>(TORQUE_API_ROUTES.offer(offerId))
+export async function fetchLeaderboardOfferDetails() {
+  const response = await fetch('https://cdn.torque.so/leaderboard/raydiumLeaderboard.json', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  // Check if the request was successful
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(`API request failed: ${errorData.message || response.statusText}`)
+  }
+
+  // Parse and return the response data
+  return (await response.json()) as TorqueLeaderboardOffer
 }
 
 /**

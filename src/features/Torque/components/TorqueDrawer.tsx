@@ -23,13 +23,12 @@ type TabEnum = typeof TABS[number]
 
 export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, campaignsLoading, campaignsError, campaigns }: Props) {
   const [selectedTab, setSelectedTab] = useState<TabEnum>('Leaderboard')
-  const { leaderboard, loading: leaderboardLoading, error: leaderboardError, lastUpdated, refetching, offer } = useTorqueLeaderboard()
+  const { leaderboard, loading: leaderboardLoading, error: leaderboardError, lastUpdated, refetching } = useTorqueLeaderboard()
 
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
       {selectedTab === 'Leaderboard' && (
         <TorqueLeaderboard
-          offer={offer}
           leaderboard={leaderboard}
           loading={leaderboardLoading}
           error={leaderboardError}

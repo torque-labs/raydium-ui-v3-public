@@ -6,7 +6,6 @@ import { useMemo } from 'react'
 interface TorqueLeaderboardCardProps extends TorqueLeaderboardPosition {
   amountDenomination: string
   isCurrentUser: boolean
-  rewardAmount?: string
 }
 
 const truncateAddress = (address: string) => {
@@ -20,7 +19,7 @@ export default function TorqueLeaderboardCard({
   amount,
   amountDenomination,
   isCurrentUser,
-  rewardAmount
+  reward
 }: TorqueLeaderboardCardProps) {
   const { rankColor, borderColor } = useMemo(() => {
     let rankColor
@@ -58,9 +57,9 @@ export default function TorqueLeaderboardCard({
           <Text fontSize="sm" color={colors.textPrimary} fontWeight="bold">
             {truncateAddress(wallet)}
           </Text>
-          {rewardAmount && (
+          {reward && (
             <Tooltip label="The amount of rewards you'd get if you were in this position.">
-              <Badge variant="crooked">{rewardAmount}</Badge>
+              <Badge variant="crooked">{reward}</Badge>
             </Tooltip>
           )}
         </HStack>

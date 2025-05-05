@@ -149,6 +149,9 @@ export type TorqueCampaign = Pick<
 export type TorqueLeaderboard = {
   id: string
   name: string
+  description: string
+  totalRewards: number
+  rewardDenomination: string
   startTime: Dayjs
   endTime: Dayjs
   leaderboard: TorqueLeaderboardPosition[]
@@ -159,13 +162,13 @@ export type TorqueLeaderboardPosition = {
   rank: number
   wallet: string
   amount: number
+  reward?: string
 }
 
 export type TorqueLeaderboardOffer = {
-  id: string
   name: string
   description: string
   rewardTotal: number
   rewardDenomination: string
-  rewardsPerPosition: number[]
+  positionRewards: Record<number, number>
 }
