@@ -1,19 +1,21 @@
-import { Heading, Stack, Text, Spinner, VStack, HStack, Badge } from '@chakra-ui/react'
+import { Heading, Stack, Text, Spinner, VStack, HStack, Badge, Skeleton, SkeletonText } from '@chakra-ui/react'
 import { useTorqueLeaderboard } from '../hooks/useTorqueLeaderboard'
-import TorqueLeaderboardCard from './TorqueLeaderboardCard'
+import TorqueLeaderboardCard, { TorqueLeaderboardCardSkeleton } from './TorqueLeaderboardCard'
 import { colors } from '@/theme/cssVariables'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { TorqueCountdown } from './TorqueCountDown'
 import dayjs from 'dayjs'
+import LeaderboardIcon from '@/icons/misc/Leaderboard'
+import MedalIcon from '@/icons/misc/Medal'
 
 export default function TorqueLeaderboard() {
   const wallet = useWallet()
-  const { leaderboard, loading, error } = useTorqueLeaderboard()
+  const { leaderboard, loading, error, refetching } = useTorqueLeaderboard()
 
   if (loading) {
     return (
       <Wrapper>
-        <Spinner />
+        <TorqueLeaderboardSkeleton />
       </Wrapper>
     )
   }
@@ -38,16 +40,20 @@ export default function TorqueLeaderboard() {
         </HStack>
       </VStack>
 
-      <Section title="Your Position">
+      <Section title="Your Position" icon={<MedalIcon />}>
         {leaderboard && leaderboard.usersPositions ? (
           <TorqueLeaderboardCard {...leaderboard.usersPositions} amountDenomination="SOL" isCurrentUser={true} />
         ) : (
           <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
-            <Text>{wallet.publicKey ? 'You are not in the leaderboard yet.' : 'Please connect your wallet to see your position.'}</Text>
+            <Text textAlign="center">
+              {wallet.publicKey
+                ? "You're close, but not quite on the leaderboard yet."
+                : 'Please connect your wallet to see your position.'}
+            </Text>
           </Stack>
         )}
       </Section>
-      <Section title="Leaderboard">
+      <Section title="Leaderboard" icon={<LeaderboardIcon />}>
         {leaderboard &&
           leaderboard.leaderboard.map((position) => (
             <TorqueLeaderboardCard
@@ -80,6 +86,36 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <VStack w="full" h="full" spacing={4}>
       {children}
+    </VStack>
+  )
+}
+
+function TorqueLeaderboardSkeleton() {
+  return (
+    <VStack w="full" h="full" spacing={4}>
+      <VStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark}>
+        <HStack w="full" justifyContent={'space-between'}>
+          <Skeleton w="55%" h={5} />
+          <Skeleton h={5} w={10} />
+        </HStack>
+        <SkeletonText w="full" noOfLines={3} />
+        <HStack w="full" justifyContent={'space-between'}>
+          <SkeletonText w="30%" noOfLines={1} />
+          <HStack>
+            <Skeleton height={9} width={14} />
+            <Skeleton height={9} width={14} />
+            <Skeleton height={9} width={14} />
+          </HStack>
+        </HStack>
+      </VStack>
+      <Section title="Your Position" icon={<MedalIcon />}>
+        <TorqueLeaderboardCardSkeleton />
+      </Section>
+      <Section title="Leaderboard" icon={<LeaderboardIcon />}>
+        {Array.from({ length: 10 }).map((_, index) => (
+          <TorqueLeaderboardCardSkeleton key={index} />
+        ))}
+      </Section>
     </VStack>
   )
 }

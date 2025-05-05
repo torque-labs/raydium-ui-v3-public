@@ -1,6 +1,22 @@
 import { colors } from '@/theme/cssVariables'
 import { TorqueLeaderboardPosition } from '../types'
-import { Card, CardHeader, CardBody, CardFooter, Text, Avatar, Flex, Stack, HStack, Box, VStack, Badge, Tooltip } from '@chakra-ui/react'
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Text,
+  Avatar,
+  Flex,
+  Stack,
+  HStack,
+  Box,
+  VStack,
+  Badge,
+  Tooltip,
+  Skeleton,
+  SkeletonText
+} from '@chakra-ui/react'
 import { useMemo } from 'react'
 
 interface TorqueLeaderboardCardProps extends TorqueLeaderboardPosition {
@@ -59,6 +75,21 @@ export default function TorqueLeaderboardCard({ rank, wallet, amount, amountDeno
             {amount} {amountDenomination} Volume
           </Text>
         </HStack>
+      </VStack>
+    </HStack>
+  )
+}
+
+export function TorqueLeaderboardCardSkeleton() {
+  return (
+    <HStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark}>
+      <Skeleton w={12} h={12} sx={{ aspectRatio: '1/1' }} borderRadius="md" />
+      <VStack w="full" align="flex-start">
+        <HStack justifyContent={'space-between'} w="full">
+          <Skeleton w="55%" h={5} />
+          <Skeleton h={5} w={10} />
+        </HStack>
+        <SkeletonText w="full" noOfLines={2} />
       </VStack>
     </HStack>
   )

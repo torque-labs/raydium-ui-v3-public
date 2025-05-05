@@ -20,6 +20,7 @@ import ZapIcon from '@/icons/misc/Zap'
 import { TorqueCampaign } from '../types'
 import TorqueComingSoon from './TorqueComingSoon'
 import TorqueLeaderboard from './TorqueLeaderboard'
+import LeaderboardIcon from '@/icons/misc/Leaderboard'
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -33,7 +34,7 @@ const TABS = ['Leaderboard', 'Claim', 'Redacted'] as const
 type TabEnum = typeof TABS[number]
 
 export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, loading, error, campaigns }: Props) {
-  const [selectedTab, setSelectedTab] = useState<TabEnum>('Claim')
+  const [selectedTab, setSelectedTab] = useState<TabEnum>('Leaderboard')
 
   if (loading) {
     return (
@@ -123,7 +124,8 @@ function Wrapper({
               renderItem={(item) => (
                 <HStack gap={1}>
                   {item === 'Claim' && <GiftIcon />}
-                  {item === 'Active' && <ZapIcon />}
+                  {item === 'Leaderboard' && <LeaderboardIcon />}
+                  {/* {item === 'Active' && <ZapIcon />} */}
                   <Text>{item}</Text>
                 </HStack>
               )}
