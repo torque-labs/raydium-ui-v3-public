@@ -1,11 +1,9 @@
-import dayjs from 'dayjs'
 import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
 
 /**
  * Torque API URL
  */
-// const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
-const TORQUE_API_URL = 'http://localhost:3001'
+const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
 /**
  * Torque API routes
  */
@@ -145,41 +143,4 @@ export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldS
  */
 export async function fetchTorqueLeaderboard(leaderboardId: string): Promise<TorqueRawLeaderboard> {
   return fetchTorqueData<TorqueRawLeaderboard>(TORQUE_API_ROUTES.leaderboard(leaderboardId))
-}
-
-/**
- * Calculates the start and end times for a leaderboard based on the leaderboard config
- *
- * @param leaderboardConfig - The leaderboard config to calculate the start and end times for
- *
- * @returns Promise with the start and end times
- */
-export async function calculateLeaderboardTimes(leaderboardConfig: TorqueRawLeaderboard['config']) {
-  const utcOffset = dayjs().utcOffset()
-
-  const startTime = dayjs(leaderboardConfig.startDate).utcOffset(utcOffset)
-  const endTime = leaderboardConfig.endDate ? dayjs(leaderboardConfig.endDate).utcOffset(utcOffset) : dayjs().utc()
-
-  // TODO: Handle weekly leaderboards
-  if (leaderboardConfig.interval !== 'DAILY') {
-    return {
-      startTime,
-      endTime
-    }
-  }
-
-  if (startTime.isBefore(endTime)) {
-    // Get midnight of the current day
-    const currentDay = dayjs().utcOffset(utcOffset).startOf('day')
-
-    return {
-      startTime: currentDay,
-      endTime: currentDay.add(1, 'day')
-    }
-  }
-
-  return {
-    startTime,
-    endTime: startTime.add(1, 'day')
-  }
 }

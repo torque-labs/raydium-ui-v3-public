@@ -47,7 +47,7 @@ export function TorqueCountdown({ date }: TorqueCountdownProps) {
       }
 
       const interval = window.setInterval(() => {
-        const duration = dayjs.duration(date.diff(dayjs.utc()))
+        const duration = dayjs.duration(date.diff(dayjs()))
 
         if (duration.asSeconds() <= 0) {
           clearInterval(interval)
@@ -93,7 +93,7 @@ export function TorqueCountdown({ date }: TorqueCountdownProps) {
   }
 
   return (
-    <HStack>
+    <HStack bg={colors.backgroundMedium} borderRadius={'md'}>
       {countdown.days && <DateCell>{countdown.days}d</DateCell>}
       {countdown.hours !== undefined && <DateCell>{countdown.hours}h</DateCell>}
       {countdown.minutes !== undefined && <DateCell>{countdown.minutes}m</DateCell>}
@@ -104,7 +104,7 @@ export function TorqueCountdown({ date }: TorqueCountdownProps) {
 
 function DateCell({ children }: { children: React.ReactNode }) {
   return (
-    <Flex height={9} width={14} p={2} bg={colors.backgroundMedium} alignItems={'center'} justifyContent={'center'} borderRadius={'md'}>
+    <Flex height={9} width={12} p={2} alignItems={'center'} justifyContent={'center'}>
       <Text fontSize={'sm'}>{children}</Text>
     </Flex>
   )

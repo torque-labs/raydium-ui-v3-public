@@ -29,17 +29,6 @@ type TorqueCrank = {
   distributorId: string
 }
 
-type TorqueAudience = {
-  id: string
-  name: string
-  type: 'ALLOWLIST' | 'DENYLIST' | 'PREDEFINED_ALLOCATION'
-  members: {
-    id: string
-    address: string
-    predefinedAllocation: number
-  }[]
-}
-
 export type TorqueRawOffer = {
   id: string
   status: 'ACTIVE' | 'COMPLETED'
@@ -55,7 +44,6 @@ export type TorqueRawOffer = {
   distributors: TorqueDistributor[]
   campaignId?: string
   campaign?: TorqueCampaign
-  audience?: TorqueAudience
 }
 
 export type TorqueRawCampaign = {
@@ -72,6 +60,10 @@ export type TorqueRawLeaderboard = {
     endDate: string
     limit: number
     interval: 'DAILY' | 'WEEKLY'
+  }
+  period: {
+    startDate: string
+    endDate: string
   }
   entries: {
     user: string

@@ -57,15 +57,14 @@ export default function TorqueLeaderboardCard({
           <Text fontSize="sm" color={colors.textPrimary} fontWeight="bold">
             {truncateAddress(wallet)}
           </Text>
-          {reward && (
-            <Tooltip label="The amount of rewards you'd get if you were in this position.">
-              <Badge variant="crooked">{reward}</Badge>
-            </Tooltip>
-          )}
+
+          <Tooltip label="The amount of rewards you'd get if you were in this position.">
+            <Badge variant="crooked">{reward ?? '???'}</Badge>
+          </Tooltip>
         </HStack>
         <HStack>
           <Text fontSize="xs" w="full" color={colors.textTertiary}>
-            {amount} {amountDenomination} Volume
+            {amount} Score
           </Text>
         </HStack>
       </VStack>

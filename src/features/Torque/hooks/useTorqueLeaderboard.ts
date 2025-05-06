@@ -1,8 +1,9 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TorqueLeaderboard, TorqueLeaderboardOffer } from '../types'
-import { calculateLeaderboardTimes, fetchTorqueLeaderboard, fetchLeaderboardOfferDetails } from '../utils'
+import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails } from '../utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import dayjs from 'dayjs'
 
 const LEADERBOARD_ID = process.env.NEXT_PUBLIC_TORQUE_LEADERBOARD_ID || 'cmaaz4o7b00006ddrm6tdii0h'
 
@@ -33,9 +34,6 @@ export function useTorqueLeaderboard() {
 
         const leaderboard = await fetchTorqueLeaderboard(LEADERBOARD_ID)
 
-        // Calculate the start and end time of the leaderboard
-        const { startTime, endTime } = await calculateLeaderboardTimes(leaderboard.config)
-
         const leaderboardEntries = leaderboard.entries.map((entry, index) => ({
           rank: index + 1,
           wallet: entry.user,
@@ -51,8 +49,8 @@ export function useTorqueLeaderboard() {
           totalRewards: offerDetailsRef.current?.totalRewards,
           rewardDenomination: offerDetailsRef.current?.rewardDenomination,
           description: offerDetailsRef.current?.description,
-          startTime,
-          endTime,
+          startTime: dayjs(leaderboard.period.startDate),
+          endTime: dayjs(leaderboard.period.endDate),
           usersPositions: leaderboardEntries.find((entry) => entry.wallet === wallet?.publicKey?.toBase58()),
           leaderboard: leaderboardEntries
         })

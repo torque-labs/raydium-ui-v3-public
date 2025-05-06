@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 import { useToast } from '@chakra-ui/react'
 import { useTokenStore } from '@/store/useTokenStore'
 
-const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cma2gy83i0003i0xjnkecgtoz'
+const RAYDIUM_PROJECT_ID = process.env.NEXT_PUBLIC_TORQUE_PROJECT_ID || 'cm9w3m8xr01trju1f3lbsy3jn'
 
 /**
  * Fetch offers and conversions for wallet

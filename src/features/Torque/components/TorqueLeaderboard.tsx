@@ -3,7 +3,6 @@ import TorqueLeaderboardCard, { TorqueLeaderboardCardSkeleton } from './TorqueLe
 import { colors } from '@/theme/cssVariables'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { TorqueCountdown } from './TorqueCountDown'
-import dayjs from 'dayjs'
 import LeaderboardIcon from '@/icons/misc/Leaderboard'
 import MedalIcon from '@/icons/misc/Medal'
 import { TorqueLeaderboard as TorqueLeaderboardType } from '../types'
@@ -78,7 +77,17 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
         {leaderboard.usersPositions ? (
           <TorqueLeaderboardCard {...leaderboard.usersPositions} amountDenomination="SOL" isCurrentUser={true} />
         ) : (
-          <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
+          <Stack
+            w="full"
+            spacing={4}
+            p={3}
+            minH={24}
+            borderRadius="md"
+            bg={colors.backgroundDark}
+            justify="center"
+            align="center"
+            opacity={0.7}
+          >
             <Text textAlign="center">
               {wallet.publicKey
                 ? "You're close, but not quite on the leaderboard yet."
@@ -92,14 +101,30 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
         icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
         // text={`Last updated: ${dayjs(lastUpdated).format('h:mm:ss A')}`}
       >
-        {leaderboard.leaderboard.map((position) => (
-          <TorqueLeaderboardCard
-            key={position.rank}
-            {...position}
-            amountDenomination="SOL"
-            isCurrentUser={position.wallet === leaderboard.usersPositions?.wallet}
-          />
-        ))}
+        {leaderboard.leaderboard.length > 0 ? (
+          leaderboard.leaderboard.map((position) => (
+            <TorqueLeaderboardCard
+              key={position.rank}
+              {...position}
+              amountDenomination="SOL"
+              isCurrentUser={position.wallet === leaderboard.usersPositions?.wallet}
+            />
+          ))
+        ) : (
+          <Stack
+            w="full"
+            spacing={4}
+            p={3}
+            minH={24}
+            borderRadius="md"
+            bg={colors.backgroundDark}
+            justify="center"
+            align="center"
+            opacity={0.7}
+          >
+            <Text textAlign="center">The leaderboard is being prepared. Please check back soon.</Text>
+          </Stack>
+        )}
       </Section>
     </Wrapper>
   )

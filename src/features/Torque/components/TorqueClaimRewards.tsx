@@ -1,4 +1,4 @@
-import { Heading, HStack, Skeleton, Stack, Text, VStack } from '@chakra-ui/react'
+import { Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
 import { useMemo } from 'react'
 import TorqueOfferCard, { TorqueOfferCardSkeleton } from './TorqueOfferCard'
 import { colors } from '@/theme/cssVariables'
