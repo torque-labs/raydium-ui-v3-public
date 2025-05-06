@@ -8,6 +8,7 @@ import Tooltip from '@/components/Tooltip'
 import ClockIcon from '@/icons/misc/Clock'
 import GiftIcon from '@/icons/misc/Gift'
 import ShareIcon from '@/icons/misc/ShareIcon'
+import { displayNumber } from '../utils'
 interface TorqueOfferCardProps extends TorqueCampaign {
   claimOffer: (offerId: string) => void
 }
@@ -100,7 +101,7 @@ export default function TorqueOfferCard({
               </Heading>
               <Tooltip label="The amount of rewards available in the pool.">
                 <Badge variant="crooked">
-                  {rewardTotal} {rewardDenomination}
+                  {displayNumber(rewardTotal)} {rewardDenomination}
                 </Badge>
               </Tooltip>
             </HStack>
@@ -125,7 +126,7 @@ export default function TorqueOfferCard({
             <HStack w="full" gap={2} justify="space-between">
               <Text fontSize="sm">Your Reward</Text>
               <Text fontSize="sm">
-                {rewardPerUser} {rewardDenomination}
+                {displayNumber(rewardPerUser)} {rewardDenomination}
               </Text>
             </HStack>
           ) : null}

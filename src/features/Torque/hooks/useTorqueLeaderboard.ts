@@ -1,7 +1,7 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TorqueLeaderboard, TorqueLeaderboardOffer } from '../types'
-import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails } from '../utils'
+import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails, displayNumber } from '../utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import dayjs from 'dayjs'
 
@@ -34,14 +34,18 @@ export function useTorqueLeaderboard() {
 
         const leaderboard = await fetchTorqueLeaderboard(LEADERBOARD_ID)
 
-        const leaderboardEntries = leaderboard.entries.map((entry, index) => ({
-          rank: index + 1,
-          wallet: entry.user,
-          amount: Math.round(entry.value / LAMPORTS_PER_SOL),
-          reward: offerDetailsRef.current?.positionRewards[index + 1]
-            ? `${offerDetailsRef.current?.positionRewards[index + 1]} ${offerDetailsRef.current?.rewardDenomination}`
+        const leaderboardEntries = leaderboard.entries.map((entry, index) => {
+          const reward = offerDetailsRef.current?.positionRewards[index + 1]
+            ? `${displayNumber(offerDetailsRef.current?.positionRewards[index + 1])} ${offerDetailsRef.current?.rewardDenomination}`
             : undefined
-        }))
+
+          return {
+            rank: index + 1,
+            wallet: entry.user,
+            amount: Math.round(entry.value / LAMPORTS_PER_SOL),
+            reward
+          }
+        })
 
         setLeaderboard({
           id: leaderboard.config.id,

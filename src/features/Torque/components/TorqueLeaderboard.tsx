@@ -6,6 +6,7 @@ import { TorqueCountdown } from './TorqueCountDown'
 import LeaderboardIcon from '@/icons/misc/Leaderboard'
 import MedalIcon from '@/icons/misc/Medal'
 import { TorqueLeaderboard as TorqueLeaderboardType } from '../types'
+import { displayNumber } from '../utils'
 
 interface TorqueLeaderboardProps {
   leaderboard?: TorqueLeaderboardType
@@ -59,7 +60,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
             {leaderboard?.name}
           </Heading>
           <Badge variant="crooked">
-            {leaderboard?.totalRewards} {leaderboard?.rewardDenomination}
+            {displayNumber(leaderboard?.totalRewards)} {leaderboard?.rewardDenomination}
           </Badge>
         </HStack>
         <Text fontSize="xs" w="full" color={colors.textTertiary}>

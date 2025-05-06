@@ -144,3 +144,13 @@ export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldS
 export async function fetchTorqueLeaderboard(leaderboardId: string): Promise<TorqueRawLeaderboard> {
   return fetchTorqueData<TorqueRawLeaderboard>(TORQUE_API_ROUTES.leaderboard(leaderboardId))
 }
+
+export function displayNumber(number: number) {
+  if (number < 1000) {
+    return number
+  }
+
+  const formattedNumber = (number / 1000).toFixed(1)
+
+  return `${formattedNumber.endsWith('.0') ? formattedNumber.slice(0, -2) : formattedNumber}k`
+}
