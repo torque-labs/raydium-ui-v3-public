@@ -52,6 +52,25 @@ export type TorqueRawCampaign = {
   description: string
 }
 
+export type TorqueRawLeaderboard = {
+  config: {
+    id: string
+    name: string
+    startDate: string
+    endDate: string
+    limit: number
+    interval: 'DAILY' | 'WEEKLY'
+  }
+  period: {
+    startDate: string
+    endDate: string
+  }
+  entries: {
+    user: string
+    value: number
+  }[]
+}
+
 type TorqueDistributor = {
   pubkey: string
   status: 'DRAFT' | 'ACTIVE' | 'CLOSED'
@@ -117,4 +136,31 @@ export type TorqueCampaign = Pick<
   | 'endTime'
 > & {
   offers: TorqueOffer[]
+}
+
+export type TorqueLeaderboard = {
+  id: string
+  name: string
+  description: string
+  totalRewards: number
+  rewardDenomination: string
+  startTime: Dayjs
+  endTime: Dayjs
+  leaderboard: TorqueLeaderboardPosition[]
+  usersPositions?: TorqueLeaderboardPosition
+}
+
+export type TorqueLeaderboardPosition = {
+  rank: number
+  wallet: string
+  amount: number
+  reward?: string
+}
+
+export type TorqueLeaderboardOffer = {
+  name: string
+  description: string
+  totalRewards: number
+  rewardDenomination: string
+  positionRewards: Record<number, number>
 }

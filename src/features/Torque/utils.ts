@@ -1,17 +1,19 @@
-import { TorqueConversion, TorqueOffer, TorqueRawOffer } from './types'
+import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
 
 /**
  * Torque API URL
  */
 const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
-
 /**
  * Torque API routes
  */
 const TORQUE_API_ROUTES = {
   offers: (wallet: string) => `/offer/wallet/${wallet}` as const,
+  offer: (offerId: string) => `/offer/${offerId}` as const,
   conversions: (wallet: string) => `/conversions/wallet/${wallet}` as const,
-  claim: (offerId: string) => `/claim/${offerId}` as const
+  claim: (offerId: string) => `/claim/${offerId}` as const,
+  leaderboard: (leaderboardId: string) => `/leaderboard/${leaderboardId}` as const,
+  audience: (projectId: string, audienceId: string) => `/projects/${projectId}/audience/${audienceId}` as const
 }
 
 /**
@@ -92,6 +94,32 @@ export async function claimOffer(offerId: string, wallet: string) {
   return fetchTorqueData<{ status: string }>(TORQUE_API_ROUTES.claim(offerId), { wallet })
 }
 
+export async function fetchLeaderboardOfferDetails() {
+  const response = await fetch('https://cdn.torque.so/leaderboard/raydiumLeaderboard.json', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  // Check if the request was successful
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(`API request failed: ${errorData.message || response.statusText}`)
+  }
+
+  // Parse and return the response data
+  return (await response.json()) as TorqueLeaderboardOffer
+}
+
+/**
+ * Sets the status based on the hierarchy of offer statuses
+ *
+ * @param newStatus - The new status to set
+ * @param oldStatus - The old status to compare against
+ *
+ **/
 export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldStatus: TorqueOffer['status']) {
   // Active offers should take precedence over any other status
   if (newStatus === 'ACTIVE' || oldStatus === 'ACTIVE') {
@@ -104,4 +132,25 @@ export function setStatusBasedOnHierarchy(newStatus: TorqueOffer['status'], oldS
   }
 
   return oldStatus
+}
+
+/**
+ * Fetches the leaderboard for a given wallet
+ *
+ * @param leaderboardId - The leaderboard ID to fetch
+ *
+ * @returns Promise with the leaderboard data
+ */
+export async function fetchTorqueLeaderboard(leaderboardId: string): Promise<TorqueRawLeaderboard> {
+  return fetchTorqueData<TorqueRawLeaderboard>(TORQUE_API_ROUTES.leaderboard(leaderboardId))
+}
+
+export function displayNumber(number: number) {
+  if (number < 1000) {
+    return number
+  }
+
+  const formattedNumber = (number / 1000).toFixed(1)
+
+  return `${formattedNumber.endsWith('.0') ? formattedNumber.slice(0, -2) : formattedNumber}k`
 }

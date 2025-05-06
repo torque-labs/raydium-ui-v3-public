@@ -1,4 +1,4 @@
-import { VStack, Text, Heading, HStack, Button, Stack, Badge, Flex, Spinner, IconButton } from '@chakra-ui/react'
+import { VStack, Text, Heading, HStack, Button, Stack, Badge, Flex, Spinner, IconButton, SkeletonText, Skeleton } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import Tooltip from '@/components/Tooltip'
 import ClockIcon from '@/icons/misc/Clock'
 import GiftIcon from '@/icons/misc/Gift'
 import ShareIcon from '@/icons/misc/ShareIcon'
+import { displayNumber } from '../utils'
 interface TorqueOfferCardProps extends TorqueCampaign {
   claimOffer: (offerId: string) => void
 }
@@ -100,7 +101,7 @@ export default function TorqueOfferCard({
               </Heading>
               <Tooltip label="The amount of rewards available in the pool.">
                 <Badge variant="crooked">
-                  {rewardTotal} {rewardDenomination}
+                  {displayNumber(rewardTotal)} {rewardDenomination}
                 </Badge>
               </Tooltip>
             </HStack>
@@ -125,7 +126,7 @@ export default function TorqueOfferCard({
             <HStack w="full" gap={2} justify="space-between">
               <Text fontSize="sm">Your Reward</Text>
               <Text fontSize="sm">
-                {rewardPerUser} {rewardDenomination}
+                {displayNumber(rewardPerUser)} {rewardDenomination}
               </Text>
             </HStack>
           ) : null}
@@ -189,5 +190,32 @@ export default function TorqueOfferCard({
         </HStack>
       </VStack>
     </HStack>
+  )
+}
+
+export function TorqueOfferCardSkeleton() {
+  return (
+    <VStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark}>
+      <HStack w="full" spacing={4}>
+        <Skeleton w={12} h={12} sx={{ aspectRatio: '1/1' }} borderRadius="md" />
+        <VStack w="full" align="flex-start">
+          <HStack justifyContent={'space-between'} w="full">
+            <Skeleton w="55%" h={5} />
+            <Skeleton h={5} w={10} />
+          </HStack>
+          <SkeletonText w="full" noOfLines={2} />
+        </VStack>
+      </HStack>
+      <VStack bg={colors.backgroundMedium} borderRadius="md" p={2} w="full" gap={2} align="flex-start">
+        <HStack w="full" gap={2} justify="space-between">
+          <Skeleton w="50%" h={5} />
+          <Skeleton w="30%" h={5} />
+        </HStack>
+        <HStack w="full" gap={2} justify="space-between">
+          <Skeleton w="65%" h={5} />
+          <Skeleton w="20%" h={5} />
+        </HStack>
+      </VStack>
+    </VStack>
   )
 }
