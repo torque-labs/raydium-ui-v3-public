@@ -168,15 +168,13 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
       })
 
       const campaigns = offersWithConversions.reduce((acc, offer) => {
-        const id = offer.campaignId ?? offer.id
+        const id = offer.id
 
         if (!acc[id]) {
-          const campaign = rawOffers.find((o) => o.campaignId === id)?.campaign
-
           acc[id] = {
             id,
-            name: campaign?.name ?? offer.name,
-            description: campaign?.description ?? offer.description,
+            name: offer.name,
+            description: offer.description,
             rewardTotal: Number(offer.rewardTotal),
             numberOfConversions: offer.numberOfConversions,
             rewardDenomination: offer.rewardDenomination,
