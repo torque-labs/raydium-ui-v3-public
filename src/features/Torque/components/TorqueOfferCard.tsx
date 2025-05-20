@@ -39,23 +39,21 @@ export default function TorqueOfferCard({
   const [showAdditionalOffers, setShowAdditionalOffers] = useState<boolean>(false)
   const explorerUrl = useAppStore((s) => s.explorerUrl)
 
-  const activeOffer = offer;
-
   const pendingOrClaimedOffer = useMemo(() => {
     return offers.find((offer) => offer.status === 'PENDING' || offer.status === 'CLAIMED')
   }, [offers])
 
   const additionalOffers = useMemo(() => {
-    return offers.filter((offer) => offer.id !== activeOffer?.id && offer.id !== pendingOrClaimedOffer?.id)
-  }, [offers, activeOffer, pendingOrClaimedOffer])
+    return offers.filter((offer) => offer.id !== offer?.id && offer.id !== pendingOrClaimedOffer?.id)
+  }, [offers, offer, pendingOrClaimedOffer])
 
   const handleClaim = async () => {
-    if (!activeOffer?.id) {
+    if (!offer?.id) {
       return
     }
 
     setClaiming(true)
-    await claimOffer(activeOffer.id)
+    await claimOffer(offer.id)
     setClaiming(false)
   }
 
@@ -83,8 +81,8 @@ export default function TorqueOfferCard({
     }
   }, [status])
 
-  const rewardPerUser = activeOffer?.rewardPerUser ?? pendingOrClaimedOffer?.rewardPerUser
-  const distributor = activeOffer?.distributor ?? pendingOrClaimedOffer?.distributor
+  const rewardPerUser = offer?.rewardPerUser ?? pendingOrClaimedOffer?.rewardPerUser
+  const distributor = offer?.distributor ?? pendingOrClaimedOffer?.distributor
 
   return (
     <HStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark} border={'solid 1px'} borderColor={borderColor}>
