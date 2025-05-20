@@ -2,7 +2,7 @@ import { Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
 import { useMemo } from 'react'
 import TorqueOfferCard, { TorqueOfferCardSkeleton } from './TorqueOfferCard'
 import { colors } from '@/theme/cssVariables'
-import { TorqueCampaign } from '../types'
+import { TorqueCampaign, TorqueOffer } from '../types'
 import HistoryIcon from '@/icons/misc/History'
 import GiftIcon from '@/icons/misc/Gift'
 import { useWallet } from '@solana/wallet-adapter-react'
@@ -72,7 +72,11 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
     <VStack gap={6} p={0} w="full">
       <Section title="Ready to Claim" icon={<GiftIcon color={colors.textSecondary} />}>
         {activeCampaigns.length > 0 ? (
-          activeCampaigns.map((campaign) => <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />)
+          activeCampaigns.flatMap((campaign) =>
+            campaign.offers
+              .filter((offer) => offer.status === 'ACTIVE')
+              .map((offer) => <TorqueOfferCard key={`${campaign.id}-${offer.id}`} {...campaign} offer={offer} claimOffer={claimOffer} />)
+          )
         ) : (
           <Stack
             w="full"
@@ -92,7 +96,11 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
 
       <Section title="History" icon={<HistoryIcon color={colors.textSecondary} />}>
         {historicalCampaigns.length > 0 ? (
-          historicalCampaigns.map((campaign) => <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />)
+          historicalCampaigns.flatMap((campaign) =>
+            campaign.offers
+              .filter((offer) => offer.status !== 'ACTIVE')
+              .map((offer) => <TorqueOfferCard key={`${campaign.id}-${offer.id}`} {...campaign} offer={offer} claimOffer={claimOffer} />)
+          )
         ) : (
           <Stack
             w="full"

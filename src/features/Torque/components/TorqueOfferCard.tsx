@@ -3,7 +3,7 @@ import { colors } from '@/theme/cssVariables'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useAppStore } from '@/store'
-import { TorqueCampaign } from '../types'
+import { TorqueCampaign, TorqueOffer } from '../types'
 import Tooltip from '@/components/Tooltip'
 import ClockIcon from '@/icons/misc/Clock'
 import GiftIcon from '@/icons/misc/Gift'
@@ -11,6 +11,7 @@ import ShareIcon from '@/icons/misc/ShareIcon'
 import { displayNumber } from '../utils'
 interface TorqueOfferCardProps extends TorqueCampaign {
   claimOffer: (offerId: string) => void
+  offer: TorqueOffer
 }
 
 const twitterShareUrl = (amount: string) => {
@@ -30,17 +31,15 @@ export default function TorqueOfferCard({
   maxParticipants,
   startTime,
   endTime,
-  status
+  status,
+  offer
 }: TorqueOfferCardProps) {
   // State
   const [claiming, setClaiming] = useState<boolean>(false)
   const [showAdditionalOffers, setShowAdditionalOffers] = useState<boolean>(false)
   const explorerUrl = useAppStore((s) => s.explorerUrl)
 
-  const activeOffer = useMemo(() => {
-    // A user should not be eligible for multiple active offers per campaign
-    return offers.find((offer) => offer.status === 'ACTIVE')
-  }, [offers])
+  const activeOffer = offer;
 
   const pendingOrClaimedOffer = useMemo(() => {
     return offers.find((offer) => offer.status === 'PENDING' || offer.status === 'CLAIMED')
