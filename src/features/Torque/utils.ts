@@ -1,4 +1,4 @@
-import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
+import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRaffleOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
 
 /**
  * Torque API URL
@@ -111,6 +111,23 @@ export async function fetchLeaderboardOfferDetails() {
 
   // Parse and return the response data
   return (await response.json()) as TorqueLeaderboardOffer
+}
+
+export async function fetchRaffleOfferDetails() {
+  const response = await fetch('https://cdn.torque.so/raffles/raydiumRaffle.json', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+
+    throw new Error(`API request failed: ${errorData.message || response.statusText}`)
+  }
+
+  return (await response.json()) as TorqueRaffleOffer
 }
 
 /**

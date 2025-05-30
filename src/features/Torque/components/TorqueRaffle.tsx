@@ -1,0 +1,253 @@
+import { Heading, Stack, Text, Spinner, VStack, HStack, Badge, Skeleton, SkeletonText, Progress, Flex } from '@chakra-ui/react'
+import { TorqueLeaderboardCardSkeleton } from './TorqueLeaderboardCard'
+import { colors } from '@/theme/cssVariables'
+import { TorqueCountdown } from './TorqueCountDown'
+import LeaderboardIcon from '@/icons/misc/Leaderboard'
+import MedalIcon from '@/icons/misc/Medal'
+import TicketIcon from '@/icons/misc/TicketIcon'
+import { TorqueRaffle as TorqueRaffleType } from '../types'
+import { displayNumber } from '../utils'
+import dayjs from 'dayjs'
+import { TorqueDayActivity } from './TorqueDayActivity'
+
+interface TorqueLeaderboardProps {
+  raffle?: TorqueRaffleType
+  loading: boolean
+  error: string | null
+  refetching: boolean
+}
+
+export default function TorqueRaffle({ raffle, loading, error, refetching }: TorqueLeaderboardProps) {
+  // TODO: Get total tickets from raffle
+  const totalTicketsPercentage = ((raffle?.userDetails?.totalTickets ?? 0) / 35) * 100
+
+  console.log(raffle)
+
+  if (loading || !raffle) {
+    return (
+      <Wrapper>
+        <TorqueLeaderboardSkeleton />
+      </Wrapper>
+    )
+  }
+
+  if (error) {
+    return (
+      <Wrapper>
+        <VStack
+          w="full"
+          spacing={4}
+          p={3}
+          minH={24}
+          borderRadius="md"
+          bg={colors.backgroundDark}
+          opacity={0.7}
+          justify="center"
+          align="center"
+        >
+          <Heading as="h3" fontSize="md">
+            Unable to load the raffle
+          </Heading>
+          <Text fontSize="sm" align="center">
+            Looks like there was an error loading the raffle. Please try again later.
+          </Text>
+        </VStack>
+      </Wrapper>
+    )
+  }
+
+  return (
+    <Wrapper>
+      <VStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark}>
+        <HStack w="full" justifyContent={'space-between'}>
+          <Heading as="h3" fontSize="md">
+            {raffle?.name}
+          </Heading>
+          <Badge variant="crooked">
+            {displayNumber(raffle?.totalRewards)} {raffle?.rewardDenomination}
+          </Badge>
+        </HStack>
+        <Text fontSize="xs" w="full" color={colors.textTertiary}>
+          {raffle?.description}
+        </Text>
+        <HStack w="full" justifyContent={'space-between'}>
+          <Text fontSize="xs" w="full" color={colors.textTertiary}>
+            Raffle ends in:
+          </Text>
+          <TorqueCountdown date={raffle?.endTime} />
+        </HStack>
+        <VStack w="full" spacing={4}>
+          <HStack w="full" justifyContent={'space-between'} gap={2}>
+            <TicketIcon />
+            <Text w="full" color={colors.textPrimary}>
+              Your Tickets
+            </Text>
+          </HStack>
+          <HStack w="full" justifyContent={'space-between'}>
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              {raffle.userDetails?.totalTickets ?? 0} of 35
+            </Text>
+            <Progress value={totalTicketsPercentage} width={'50%'} bg={colors.backgroundMedium} />
+          </HStack>
+        </VStack>
+      </VStack>
+
+      <Section
+        title="Todays Progress"
+        icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
+        text={`Last updated: ${dayjs(raffle.lastUpdated).format('h:mm:ss A')}`}
+      >
+        {raffle.userDetails ? (
+          <VStack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
+            <HStack w="full" alignItems={'flex-end'} gap={2}>
+              <Text fontSize={'lg'} color={colors.textPrimary} marginBottom={0} lineHeight={1}>
+                {raffle.userDetails.currentDayTotal}
+              </Text>
+              <Text fontSize="xs" color={colors.textTertiary} marginBottom={0}>
+                / {raffle.dailyVolumeRequired} {raffle.volumeDenomination}
+              </Text>
+            </HStack>
+            <Progress
+              value={(raffle.userDetails.currentDayTotal / raffle.dailyVolumeRequired) * 100}
+              width={'100%'}
+              bg={colors.backgroundMedium}
+            />
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              {raffle.dailyVolumeRequired - raffle.userDetails.currentDayTotal <= 0
+                ? "You've got todays ticket!"
+                : `${raffle.dailyVolumeRequired - raffle.userDetails.currentDayTotal} ${raffle.volumeDenomination} more for a ticket`}
+            </Text>
+          </VStack>
+        ) : (
+          <Stack
+            w="full"
+            spacing={4}
+            p={3}
+            minH={24}
+            borderRadius="md"
+            bg={colors.backgroundDark}
+            justify="center"
+            align="center"
+            opacity={0.7}
+          >
+            <Text textAlign="center">Please connect your wallet to see your progress.</Text>
+          </Stack>
+        )}
+      </Section>
+      <Section
+        title="Weekly Activity"
+        icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
+        text={`${raffle.userDetails?.totalTickets ?? 0}/7 Days`}
+      >
+        {raffle.userDetails ? (
+          <VStack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
+            <HStack w="full" justifyContent={'space-between'}>
+              {raffle.userDetails.days.map((day) => (
+                <TorqueDayActivity key={day.day.toISOString()} day={day} />
+              ))}
+            </HStack>
+          </VStack>
+        ) : (
+          <Stack
+            w="full"
+            spacing={4}
+            p={3}
+            minH={24}
+            borderRadius="md"
+            bg={colors.backgroundDark}
+            justify="center"
+            align="center"
+            opacity={0.7}
+          >
+            <Text textAlign="center">Please connect your wallet to see your weekly activity.</Text>
+          </Stack>
+        )}
+      </Section>
+      <Section title="Prize Tiers" icon={<LeaderboardIcon />}>
+        <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
+          {raffle.rewards.map((reward, index) => (
+            <Flex
+              key={index}
+              w="full"
+              justifyContent={'space-between'}
+              borderBottom={index !== raffle.rewards.length - 1 ? `1px solid ${colors.dividerBg}` : 'none'}
+              pb={2}
+              mt={0}
+            >
+              <Text fontSize="xs" w="full" color={colors.textTertiary}>
+                {reward.winnersCount} winners
+              </Text>
+              <Badge variant="crooked">
+                {displayNumber(reward.reward)} {raffle.rewardDenomination}
+              </Badge>
+            </Flex>
+          ))}
+        </Stack>
+      </Section>
+      <Section title="Raffle Details" icon={<LeaderboardIcon />}>
+        <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
+          <Text textAlign="center">The raffle is being prepared. Please check back soon.</Text>
+        </Stack>
+      </Section>
+    </Wrapper>
+  )
+}
+
+function Section({ children, title, icon, text }: { children: React.ReactNode; title: string; icon?: React.ReactNode; text?: string }) {
+  return (
+    <VStack gap={2} p={0} w="full" align="flex-start">
+      <HStack gap={2} justifyContent={'space-between'} alignItems={'center'} w="full">
+        <HStack gap={2} alignItems={'center'}>
+          {icon}
+          <Heading as="h3" fontSize="md" alignSelf="flex-start">
+            {title}
+          </Heading>
+        </HStack>
+        {text && (
+          <Text fontSize="xs" color={colors.textTertiary}>
+            {text}
+          </Text>
+        )}
+      </HStack>
+      {children}
+    </VStack>
+  )
+}
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <VStack w="full" h="full" spacing={4}>
+      {children}
+    </VStack>
+  )
+}
+
+function TorqueLeaderboardSkeleton() {
+  return (
+    <VStack w="full" h="full" spacing={4}>
+      <VStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark}>
+        <HStack w="full" justifyContent={'space-between'}>
+          <Skeleton w="55%" h={5} />
+          <Skeleton h={5} w={10} />
+        </HStack>
+        <SkeletonText w="full" noOfLines={3} />
+        <HStack w="full" justifyContent={'space-between'}>
+          <SkeletonText w="30%" noOfLines={1} />
+          <HStack>
+            <Skeleton height={9} width={14} />
+            <Skeleton height={9} width={14} />
+            <Skeleton height={9} width={14} />
+          </HStack>
+        </HStack>
+      </VStack>
+      <Section title="Your Position" icon={<MedalIcon />}>
+        <TorqueLeaderboardCardSkeleton />
+      </Section>
+      <Section title="Leaderboard" icon={<LeaderboardIcon />}>
+        {Array.from({ length: 10 }).map((_, index) => (
+          <TorqueLeaderboardCardSkeleton key={index} />
+        ))}
+      </Section>
+    </VStack>
+  )
+}
