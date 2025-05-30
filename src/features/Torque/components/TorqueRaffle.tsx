@@ -140,7 +140,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
         text={`${raffle.userDetails?.totalTickets ?? 0}/7 Days`}
       >
         {raffle.userDetails ? (
-          <VStack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
+          <VStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
             <HStack w="full" justifyContent={'space-between'}>
               {raffle.userDetails.days.map((day) => (
                 <TorqueDayActivity key={day.day.toISOString()} day={day} />
@@ -166,14 +166,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
       <Section title="Prize Tiers" icon={<LeaderboardIcon />}>
         <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
           {raffle.rewards.map((reward, index) => (
-            <Flex
-              key={index}
-              w="full"
-              justifyContent={'space-between'}
-              borderBottom={index !== raffle.rewards.length - 1 ? `1px solid ${colors.dividerBg}` : 'none'}
-              pb={2}
-              mt={0}
-            >
+            <Flex key={index} w="full" justifyContent={'space-between'} borderBottom={`1px solid ${colors.dividerBg}`} pb={2} mt={0}>
               <Text fontSize="xs" w="full" color={colors.textTertiary}>
                 {reward.winnersCount} winners
               </Text>
@@ -182,11 +175,50 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
               </Badge>
             </Flex>
           ))}
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              Total
+            </Text>
+            <Badge variant="crooked">
+              {displayNumber(raffle.totalRewards)} {raffle.rewardDenomination}
+            </Badge>
+          </Flex>
         </Stack>
       </Section>
       <Section title="Raffle Details" icon={<LeaderboardIcon />}>
         <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
-          <Text textAlign="center">The raffle is being prepared. Please check back soon.</Text>
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              Daily Volume Required
+            </Text>
+            <Badge variant="crooked">
+              {displayNumber(raffle.dailyVolumeRequired)} {raffle.volumeDenomination}
+            </Badge>
+          </Flex>
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              Tickets per day
+            </Text>
+            <Text fontSize="xs" w="full" color={colors.textTertiary} textAlign={'end'}>
+              {raffle.ticketsPerDay} tickets
+            </Text>
+          </Flex>
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              Weekly ticket cap
+            </Text>
+            <Text fontSize="xs" w="full" color={colors.textTertiary} textAlign={'end'}>
+              {raffle.maxWeeklyTickets} tickets
+            </Text>
+          </Flex>
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
+            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+              Repeat wins
+            </Text>
+            <Text fontSize="xs" w="full" color={colors.textTertiary} textAlign={'end'}>
+              {raffle.winMoreThanOnce ? 'Yes' : 'No'}
+            </Text>
+          </Flex>
         </Stack>
       </Section>
     </Wrapper>
