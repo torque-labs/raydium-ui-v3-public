@@ -19,7 +19,7 @@ interface TorqueLeaderboardProps {
 
 export default function TorqueRaffle({ raffle, loading, error, refetching }: TorqueLeaderboardProps) {
   // TODO: Get total tickets from raffle
-  const totalTicketsPercentage = ((raffle?.userDetails?.totalTickets ?? 0) / 35) * 100
+  const totalTicketsPercentage = ((raffle?.userDetails?.totalTickets ?? 0) / (raffle?.maxWeeklyTickets ?? 7)) * 100
 
   console.log(raffle)
 
@@ -71,7 +71,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
           {raffle?.description}
         </Text>
         <HStack w="full" justifyContent={'space-between'}>
-          <Text fontSize="xs" w="full" color={colors.textTertiary}>
+          <Text fontSize="sm" w="full" color={colors.textPrimary}>
             Raffle ends in:
           </Text>
           <TorqueCountdown date={raffle?.endTime} />
@@ -85,7 +85,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
           </HStack>
           <HStack w="full" justifyContent={'space-between'}>
             <Text fontSize="xs" w="full" color={colors.textTertiary}>
-              {raffle.userDetails?.totalTickets ?? 0} of 35
+              {raffle.userDetails?.totalTickets ?? 0} of {raffle.maxWeeklyTickets}
             </Text>
             <Progress value={totalTicketsPercentage} width={'50%'} bg={colors.backgroundMedium} />
           </HStack>
@@ -93,7 +93,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
       </VStack>
 
       <Section
-        title="Todays Progress"
+        title="My Progress Today"
         icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
         text={`Last updated: ${dayjs(raffle.lastUpdated).format('h:mm:ss A')}`}
       >
@@ -135,7 +135,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
         )}
       </Section>
       <Section
-        title="Weekly Activity"
+        title="My Weekly Activity"
         icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
         text={`${raffle.userDetails?.totalTickets ?? 0}/7 Days`}
       >
@@ -166,8 +166,8 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
       <Section title="Prize Tiers" icon={<LeaderboardIcon />}>
         <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
           {raffle.rewards.map((reward, index) => (
-            <Flex key={index} w="full" justifyContent={'space-between'} borderBottom={`1px solid ${colors.dividerBg}`} pb={2} mt={0}>
-              <Text fontSize="xs" w="full" color={colors.textTertiary}>
+            <Flex key={index} w="full" justifyContent={'space-between'} pb={2} mt={0}>
+              <Text fontSize="sm" w="full" color={colors.textTertiary}>
                 {reward.winnersCount} winners
               </Text>
               <Badge variant="crooked">
@@ -175,8 +175,8 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
               </Badge>
             </Flex>
           ))}
-          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
-            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0} borderTop={`1px solid ${colors.dividerBg}`} pt={2}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Total
             </Text>
             <Badge variant="crooked">
@@ -188,7 +188,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
       <Section title="Raffle Details" icon={<LeaderboardIcon />}>
         <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
           <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
-            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Daily Volume Required
             </Text>
             <Badge variant="crooked">
@@ -196,26 +196,26 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
             </Badge>
           </Flex>
           <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
-            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Tickets per day
             </Text>
-            <Text fontSize="xs" w="full" color={colors.textTertiary} textAlign={'end'}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary} textAlign={'end'}>
               {raffle.ticketsPerDay} tickets
             </Text>
           </Flex>
           <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
-            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Weekly ticket cap
             </Text>
-            <Text fontSize="xs" w="full" color={colors.textTertiary} textAlign={'end'}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary} textAlign={'end'}>
               {raffle.maxWeeklyTickets} tickets
             </Text>
           </Flex>
           <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
-            <Text fontSize="xs" w="full" color={colors.textTertiary}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Repeat wins
             </Text>
-            <Text fontSize="xs" w="full" color={colors.textTertiary} textAlign={'end'}>
+            <Text fontSize="sm" w="full" color={colors.textTertiary} textAlign={'end'}>
               {raffle.winMoreThanOnce ? 'Yes' : 'No'}
             </Text>
           </Flex>

@@ -67,7 +67,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
           {leaderboard?.description}
         </Text>
         <HStack w="full" justifyContent={'space-between'}>
-          <Text fontSize="xs" w="full" color={colors.textTertiary}>
+          <Text fontSize="sm" w="full" color={colors.textPrimary}>
             Snapshot in:
           </Text>
           <TorqueCountdown date={leaderboard?.endTime} />

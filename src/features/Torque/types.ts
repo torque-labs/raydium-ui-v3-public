@@ -166,12 +166,16 @@ export type TorqueLeaderboardOffer = {
 }
 
 export type TorqueRaffle = TorqueRaffleOffer & {
-  id: string
   startTime: Dayjs
   endTime: Dayjs
   days: Dayjs[]
   userDetails?: TorqueUserRaffleDetails
   lastUpdated: Dayjs
+}
+
+export type TorqueRaffleUserVolume = {
+  wallet: string
+  volumes: { day: string; volume: number; updatedAt: string }[]
 }
 
 type TorqueUserRaffleDetails = {

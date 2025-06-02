@@ -1,14 +1,11 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { TorqueLeaderboard, TorqueLeaderboardOffer, TorqueRaffle, TorqueRaffleOffer } from '../types'
-import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails, displayNumber, fetchRaffleOfferDetails } from '../utils'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { TorqueRaffle, TorqueRaffleOffer, TorqueUserRaffleDay } from '../types'
+import { fetchRaffleOfferDetails, fetchRaffleUserVolume } from '../utils'
 import dayjs from 'dayjs'
 import weekday from 'dayjs/plugin/weekday'
 
 dayjs.extend(weekday)
-
-const LEADERBOARD_ID = process.env.NEXT_PUBLIC_TORQUE_LEADERBOARD_ID || 'cmaaz4o7b00006ddrm6tdii0h'
 
 export function useTorqueRaffle() {
   const interval = useRef<NodeJS.Timeout | null>(null)
@@ -34,26 +31,54 @@ export function useTorqueRaffle() {
           offerDetailsRef.current = offerDetails
         }
 
+        // Using empty wallet is none is there to then be able to populate the details in the UI
+        const userVolume = await fetchRaffleUserVolume(wallet.publicKey?.toBase58() ?? '11111111111111111111111111111111')
+
+        const todayUtc = dayjs().utc().startOf('day')
+
+        const { days, startTime, endTime } = userVolume.volumes.reduce(
+          (acc, volume) => {
+            const day = dayjs(volume.day)
+            if (day.isBefore(acc.startTime)) {
+              acc.startTime = day
+            }
+            if (day.isAfter(acc.endTime)) {
+              acc.endTime = day
+            }
+            return acc
+          },
+          { days: [], startTime: dayjs(), endTime: dayjs() }
+        )
+
+        const userDetails = wallet.publicKey
+          ? userVolume.volumes.reduce<{
+              days: TorqueUserRaffleDay[]
+              currentDayTotal: number
+              totalTickets: number
+            }>(
+              (acc, volume) => {
+                const day = dayjs(volume.day)
+                acc.days.push({
+                  day,
+                  ticketAchieved: volume.volume >= (offerDetailsRef.current?.dailyVolumeRequired ?? 0),
+                  dayInitial: day.format('ddd')[0],
+                  tense: day.isSame(todayUtc, 'day') ? 'PRESENT' : day.isAfter(todayUtc) ? 'FUTURE' : 'PAST'
+                })
+                acc.currentDayTotal += volume.volume
+                acc.totalTickets += volume.volume >= (offerDetailsRef.current?.dailyVolumeRequired ?? 0) ? 1 : 0
+                return acc
+              },
+              { days: [], currentDayTotal: 0, totalTickets: 2 }
+            )
+          : undefined
+
         setRaffle({
-          id: 'ABC',
           ...offerDetailsRef.current,
-          startTime: dayjs().weekday(-7),
-          endTime: dayjs().weekday(7),
-          lastUpdated: dayjs(),
-          days: Array.from({ length: 14 }, (_, i) => dayjs().weekday(i - 7)),
-          userDetails: {
-            days: [
-              { day: dayjs().weekday(-6), ticketAchieved: true, dayInitial: 'M', tense: 'PAST' },
-              { day: dayjs().weekday(-5), ticketAchieved: true, dayInitial: 'T', tense: 'PAST' },
-              { day: dayjs().weekday(-4), ticketAchieved: true, dayInitial: 'W', tense: 'PAST' },
-              { day: dayjs().weekday(-3), ticketAchieved: false, dayInitial: 'T', tense: 'PAST' },
-              { day: dayjs().weekday(-2), ticketAchieved: false, dayInitial: 'F', tense: 'PRESENT' },
-              { day: dayjs().weekday(-1), ticketAchieved: false, dayInitial: 'S', tense: 'FUTURE' },
-              { day: dayjs().weekday(-0), ticketAchieved: false, dayInitial: 'S', tense: 'FUTURE' }
-            ],
-            currentDayTotal: 2.34,
-            totalTickets: 3
-          }
+          startTime: startTime.startOf('day'),
+          endTime: endTime.endOf('day'),
+          lastUpdated: dayjs(userVolume.volumes.find((volume) => dayjs(volume.day).isSame(todayUtc, 'day'))?.updatedAt),
+          days,
+          userDetails
         })
       } catch (error) {
         setError(error as string)

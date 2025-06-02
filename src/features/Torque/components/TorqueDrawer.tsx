@@ -34,8 +34,6 @@ export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, campai
   } = useTorqueLeaderboard()
   const { raffle, loading: raffleLoading, error: raffleError, refetching: raffleRefetching } = useTorqueRaffle()
 
-  console.log(raffle)
-
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
       {selectedTab === 'Leaderboard' && (
