@@ -77,7 +77,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
 
       <Section title="Your Position" icon={<MedalIcon />}>
         {leaderboard.usersPositions ? (
-          <TorqueLeaderboardCard {...leaderboard.usersPositions} amountDenomination="SOL" isCurrentUser={true} />
+          <TorqueLeaderboardCard {...leaderboard.usersPositions} isCurrentUser={true} />
         ) : (
           <Stack
             w="full"
@@ -108,7 +108,6 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
             <TorqueLeaderboardCard
               key={position.rank}
               {...position}
-              amountDenomination="SOL"
               isCurrentUser={position.wallet === leaderboard.usersPositions?.wallet}
             />
           ))
