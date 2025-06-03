@@ -3,8 +3,7 @@ import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderb
 /**
  * Torque API URL
  */
-// const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
-const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'http://localhost:3001'
+const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
 /**
  * Torque API routes
  */
