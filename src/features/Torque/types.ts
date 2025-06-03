@@ -69,6 +69,7 @@ export type TorqueRawLeaderboard = {
     user: string
     value: number
   }[]
+  updatedAt: string
 }
 
 type TorqueDistributor = {
@@ -165,23 +166,26 @@ export type TorqueLeaderboardOffer = {
   positionRewards: Record<number, number>
 }
 
-export type TorqueRaffle = TorqueRaffleOffer & {
+export type TorqueRaffle = TorqueRaffleConfig & {
   startTime: Dayjs
   endTime: Dayjs
-  days: Dayjs[]
+  days: { day: Dayjs; threshold: number }[]
   userDetails?: TorqueUserRaffleDetails
   lastUpdated: Dayjs
+  todaysThreshold: number
 }
 
-export type TorqueRaffleUserVolume = {
-  wallet: string
+export type TorqueRawRaffle = {
+  wallet?: string
   volumes: { day: string; volume: number; updatedAt: string }[]
+  config: TorqueRaffleConfig
 }
 
 type TorqueUserRaffleDetails = {
   days: TorqueUserRaffleDay[]
   currentDayTotal: number
   totalTickets: number
+  todaysDate: Dayjs
 }
 
 export type TorqueUserRaffleDay = {
@@ -189,16 +193,17 @@ export type TorqueUserRaffleDay = {
   ticketAchieved: boolean
   dayInitial: string
   tense: 'PAST' | 'PRESENT' | 'FUTURE'
+  threshold: number
 }
 
-export type TorqueRaffleOffer = {
+export type TorqueRaffleConfig = {
   name: string
   description: string
   totalRewards: number
   rewardDenomination: string
   totalWinners: number
   rewards: { winnersCount: number; reward: number }[]
-  dailyVolumeRequired: number
+  dailyVolumeRequired: Record<string, number>
   volumeDenomination: string
   ticketsPerDay: number
   maxWeeklyTickets: number

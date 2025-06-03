@@ -1,17 +1,10 @@
-import {
-  TorqueConversion,
-  TorqueLeaderboardOffer,
-  TorqueOffer,
-  TorqueRaffleOffer,
-  TorqueRaffleUserVolume,
-  TorqueRawLeaderboard,
-  TorqueRawOffer
-} from './types'
+import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer, TorqueRawRaffle } from './types'
 
 /**
  * Torque API URL
  */
-const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
+// const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'https://server.torque.so'
+const TORQUE_API_URL = process.env.NEXT_PUBLIC_TORQUE_API_URL || 'http://localhost:3001'
 /**
  * Torque API routes
  */
@@ -22,7 +15,7 @@ const TORQUE_API_ROUTES = {
   claim: (offerId: string) => `/claim/${offerId}` as const,
   leaderboard: (leaderboardId: string) => `/leaderboard/${leaderboardId}` as const,
   audience: (projectId: string, audienceId: string) => `/projects/${projectId}/audience/${audienceId}` as const,
-  raffle: (wallet: string) => `/raydium/user-volume/${wallet}` as const
+  raffle: () => `/raydium/weekly-raffle` as const
 }
 
 /**
@@ -122,25 +115,8 @@ export async function fetchLeaderboardOfferDetails() {
   return (await response.json()) as TorqueLeaderboardOffer
 }
 
-export async function fetchRaffleOfferDetails() {
-  const response = await fetch('https://cdn.torque.so/raffles/raydiumRaffle.json', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json()
-
-    throw new Error(`API request failed: ${errorData.message || response.statusText}`)
-  }
-
-  return (await response.json()) as TorqueRaffleOffer
-}
-
-export async function fetchRaffleUserVolume(wallet: string) {
-  return fetchTorqueData<TorqueRaffleUserVolume>(TORQUE_API_ROUTES.raffle(wallet))
+export async function fetchRaffleDetails(wallet?: string) {
+  return fetchTorqueData<TorqueRawRaffle>(TORQUE_API_ROUTES.raffle(), wallet ? { pubkey: wallet } : undefined)
 }
 
 /**

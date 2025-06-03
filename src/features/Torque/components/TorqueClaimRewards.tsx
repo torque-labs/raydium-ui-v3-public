@@ -70,7 +70,7 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
 
   return (
     <VStack gap={6} p={0} w="full">
-      <Section title="Ready to Claim" icon={<GiftIcon color={colors.textSecondary} />}>
+      <Section title="Ready to Claim" icon={<GiftIcon />}>
         {activeCampaigns.length > 0 ? (
           activeCampaigns.map((campaign) => <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />)
         ) : (
@@ -90,7 +90,7 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
         )}
       </Section>
 
-      <Section title="History" icon={<HistoryIcon color={colors.textSecondary} />}>
+      <Section title="History" icon={<HistoryIcon />}>
         {historicalCampaigns.length > 0 ? (
           historicalCampaigns.map((campaign) => <TorqueOfferCard key={campaign.id} {...campaign} claimOffer={claimOffer} />)
         ) : (

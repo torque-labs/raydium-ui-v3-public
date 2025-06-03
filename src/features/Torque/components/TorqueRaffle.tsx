@@ -9,6 +9,9 @@ import { TorqueRaffle as TorqueRaffleType } from '../types'
 import { displayNumber } from '../utils'
 import dayjs from 'dayjs'
 import { TorqueDayActivity } from './TorqueDayActivity'
+import GiftIcon from '@/icons/misc/Gift'
+import CalendarIcon from '@/icons/misc/Calendar'
+import GaugeIcon from '@/icons/misc/Gauge'
 
 interface TorqueLeaderboardProps {
   raffle?: TorqueRaffleType
@@ -18,10 +21,7 @@ interface TorqueLeaderboardProps {
 }
 
 export default function TorqueRaffle({ raffle, loading, error, refetching }: TorqueLeaderboardProps) {
-  // TODO: Get total tickets from raffle
   const totalTicketsPercentage = ((raffle?.userDetails?.totalTickets ?? 0) / (raffle?.maxWeeklyTickets ?? 7)) * 100
-
-  console.log(raffle)
 
   if (loading || !raffle) {
     return (
@@ -94,8 +94,8 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
 
       <Section
         title="My Progress Today"
-        icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
-        text={`Last updated: ${dayjs(raffle.lastUpdated).format('h:mm:ss A')}`}
+        icon={refetching ? <Spinner size="sm" /> : <GaugeIcon />}
+        text={`Updated at: ${dayjs(raffle.lastUpdated).format('h:mm A')}`}
       >
         {raffle.userDetails ? (
           <VStack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
@@ -104,18 +104,20 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
                 {raffle.userDetails.currentDayTotal}
               </Text>
               <Text fontSize="xs" color={colors.textTertiary} marginBottom={0}>
-                / {raffle.dailyVolumeRequired} {raffle.volumeDenomination}
+                / {raffle.todaysThreshold} {raffle.volumeDenomination}
               </Text>
             </HStack>
             <Progress
-              value={(raffle.userDetails.currentDayTotal / raffle.dailyVolumeRequired) * 100}
+              value={(raffle.userDetails.currentDayTotal / raffle.todaysThreshold) * 100}
               width={'100%'}
               bg={colors.backgroundMedium}
             />
             <Text fontSize="xs" w="full" color={colors.textTertiary}>
-              {raffle.dailyVolumeRequired - raffle.userDetails.currentDayTotal <= 0
+              {raffle.todaysThreshold - raffle.userDetails.currentDayTotal <= 0
                 ? "You've got todays ticket!"
-                : `${raffle.dailyVolumeRequired - raffle.userDetails.currentDayTotal} ${raffle.volumeDenomination} more for a ticket`}
+                : `You need ${raffle.todaysThreshold - raffle.userDetails.currentDayTotal} ${
+                    raffle.volumeDenomination
+                  } to get a ticket by ${raffle.userDetails?.todaysDate.local().format('h:mm A')} UTC`}
             </Text>
           </VStack>
         ) : (
@@ -136,7 +138,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
       </Section>
       <Section
         title="My Weekly Activity"
-        icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
+        icon={refetching ? <Spinner size="sm" /> : <CalendarIcon />}
         text={`${raffle.userDetails?.totalTickets ?? 0}/7 Days`}
       >
         {raffle.userDetails ? (
@@ -163,7 +165,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
           </Stack>
         )}
       </Section>
-      <Section title="Prize Tiers" icon={<LeaderboardIcon />}>
+      <Section title="Prize Tiers" icon={<GiftIcon />}>
         <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
           {raffle.rewards.map((reward, index) => (
             <Flex key={index} w="full" justifyContent={'space-between'} pb={2} mt={0}>
@@ -175,7 +177,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
               </Badge>
             </Flex>
           ))}
-          <Flex w="full" justifyContent={'space-between'} pb={2} mt={0} borderTop={`1px solid ${colors.dividerBg}`} pt={2}>
+          <Flex w="full" justifyContent={'space-between'} pb={2} mt={-2} borderTop={`1px solid ${colors.dividerBg}`} pt={2}>
             <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Total
             </Text>
@@ -185,15 +187,13 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
           </Flex>
         </Stack>
       </Section>
-      <Section title="Raffle Details" icon={<LeaderboardIcon />}>
+      <Section title="Raffle Details" icon={<TicketIcon />}>
         <Stack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
           <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
             <Text fontSize="sm" w="full" color={colors.textTertiary}>
-              Daily Volume Required
+              Today&apos;s Required Points
             </Text>
-            <Badge variant="crooked">
-              {displayNumber(raffle.dailyVolumeRequired)} {raffle.volumeDenomination}
-            </Badge>
+            <Badge variant="crooked">{displayNumber(raffle.todaysThreshold)}</Badge>
           </Flex>
           <Flex w="full" justifyContent={'space-between'} pb={2} mt={0}>
             <Text fontSize="sm" w="full" color={colors.textTertiary}>

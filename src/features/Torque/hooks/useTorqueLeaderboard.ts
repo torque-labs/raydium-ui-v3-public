@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { TorqueLeaderboard, TorqueLeaderboardOffer } from '../types'
 import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails, displayNumber } from '../utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 
 const LEADERBOARD_ID = process.env.NEXT_PUBLIC_TORQUE_LEADERBOARD_ID || 'cmaaz4o7b00006ddrm6tdii0h'
 
@@ -11,7 +11,7 @@ export function useTorqueLeaderboard() {
   const interval = useRef<NodeJS.Timeout | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [refetching, setRefetching] = useState<boolean>(false)
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [lastUpdated, setLastUpdated] = useState<Dayjs>(dayjs())
   const [error, setError] = useState<string | null>(null)
   const [leaderboard, setLeaderboard] = useState<TorqueLeaderboard>()
   const offerDetailsRef = useRef<TorqueLeaderboardOffer>()
@@ -58,12 +58,12 @@ export function useTorqueLeaderboard() {
           usersPositions: leaderboardEntries.find((entry) => entry.wallet === wallet?.publicKey?.toBase58()),
           leaderboard: leaderboardEntries
         })
+        setLastUpdated(dayjs(leaderboard.updatedAt))
       } catch (error) {
         setError(error as string)
       } finally {
         setLoading(false)
         setRefetching(false)
-        setLastUpdated(new Date())
       }
     },
     [wallet?.publicKey]

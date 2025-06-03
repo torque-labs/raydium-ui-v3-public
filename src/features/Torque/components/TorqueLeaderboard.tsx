@@ -7,12 +7,13 @@ import LeaderboardIcon from '@/icons/misc/Leaderboard'
 import MedalIcon from '@/icons/misc/Medal'
 import { TorqueLeaderboard as TorqueLeaderboardType } from '../types'
 import { displayNumber } from '../utils'
+import { Dayjs } from 'dayjs'
 
 interface TorqueLeaderboardProps {
   leaderboard?: TorqueLeaderboardType
   loading: boolean
   error: string | null
-  lastUpdated: Date
+  lastUpdated: Dayjs
   refetching: boolean
 }
 
@@ -100,7 +101,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
       <Section
         title="Leaderboard"
         icon={refetching ? <Spinner size="sm" /> : <LeaderboardIcon />}
-        // text={`Last updated: ${dayjs(lastUpdated).format('h:mm:ss A')}`}
+        text={`Updated at: ${lastUpdated.format('h:mm A')}`}
       >
         {leaderboard.leaderboard.length > 0 ? (
           leaderboard.leaderboard.map((position) => (

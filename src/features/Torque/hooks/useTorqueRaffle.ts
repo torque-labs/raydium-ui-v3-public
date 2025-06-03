@@ -1,8 +1,8 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { TorqueRaffle, TorqueRaffleOffer, TorqueUserRaffleDay } from '../types'
-import { fetchRaffleOfferDetails, fetchRaffleUserVolume } from '../utils'
-import dayjs from 'dayjs'
+import { TorqueRaffle, TorqueUserRaffleDay } from '../types'
+import { fetchRaffleDetails } from '../utils'
+import dayjs, { Dayjs } from 'dayjs'
 import weekday from 'dayjs/plugin/weekday'
 
 dayjs.extend(weekday)
@@ -13,7 +13,6 @@ export function useTorqueRaffle() {
   const [refetching, setRefetching] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [raffle, setRaffle] = useState<TorqueRaffle>()
-  const offerDetailsRef = useRef<TorqueRaffleOffer>()
 
   const wallet = useWallet()
 
@@ -26,59 +25,69 @@ export function useTorqueRaffle() {
       }
 
       try {
-        if (!offerDetailsRef.current) {
-          const offerDetails = await fetchRaffleOfferDetails()
-          offerDetailsRef.current = offerDetails
-        }
-
         // Using empty wallet is none is there to then be able to populate the details in the UI
-        const userVolume = await fetchRaffleUserVolume(wallet.publicKey?.toBase58() ?? '11111111111111111111111111111111')
+        const raffleDetails = await fetchRaffleDetails(wallet.publicKey?.toBase58() ?? undefined)
 
         const todayUtc = dayjs().utc().startOf('day')
 
-        const { days, startTime, endTime } = userVolume.volumes.reduce(
-          (acc, volume) => {
-            const day = dayjs(volume.day)
-            if (day.isBefore(acc.startTime)) {
-              acc.startTime = day
-            }
-            if (day.isAfter(acc.endTime)) {
-              acc.endTime = day
-            }
-            return acc
-          },
-          { days: [], startTime: dayjs(), endTime: dayjs() }
-        )
+        const days: { day: Dayjs; threshold: number }[] = []
+        let startTime = dayjs()
+        let endTime = dayjs()
 
-        const userDetails = wallet.publicKey
-          ? userVolume.volumes.reduce<{
-              days: TorqueUserRaffleDay[]
-              currentDayTotal: number
-              totalTickets: number
-            }>(
-              (acc, volume) => {
-                const day = dayjs(volume.day)
-                acc.days.push({
-                  day,
-                  ticketAchieved: volume.volume >= (offerDetailsRef.current?.dailyVolumeRequired ?? 0),
-                  dayInitial: day.format('ddd')[0],
-                  tense: day.isSame(todayUtc, 'day') ? 'PRESENT' : day.isAfter(todayUtc) ? 'FUTURE' : 'PAST'
-                })
-                acc.currentDayTotal += volume.volume
-                acc.totalTickets += volume.volume >= (offerDetailsRef.current?.dailyVolumeRequired ?? 0) ? 1 : 0
-                return acc
-              },
-              { days: [], currentDayTotal: 0, totalTickets: 2 }
-            )
-          : undefined
+        Object.entries(raffleDetails.config.dailyVolumeRequired).forEach(([day, volume]) => {
+          const formattedDay = dayjs(day)
+          days.push({ day: formattedDay, threshold: volume })
+          if (formattedDay.isBefore(startTime)) {
+            startTime = formattedDay
+          }
+          if (formattedDay.isAfter(endTime)) {
+            endTime = formattedDay
+          }
+        })
+
+        const userDetails =
+          raffleDetails.volumes.length > 0
+            ? raffleDetails.volumes.reduce<{
+                days: TorqueUserRaffleDay[]
+                currentDayTotal: number
+                totalTickets: number
+                todaysDate: Dayjs
+              }>(
+                (acc, volume) => {
+                  const day = dayjs(volume.day)
+
+                  const dailyThreshold = raffleDetails.config.dailyVolumeRequired[volume.day]
+
+                  if (!dailyThreshold) {
+                    throw new Error(`Threshold not found for day: ${day.format('M-D-YY')}`)
+                  }
+
+                  acc.days.push({
+                    day,
+                    ticketAchieved: volume.volume >= dailyThreshold,
+                    dayInitial: day.format('ddd')[0],
+                    tense: day.isSame(todayUtc, 'day') ? 'PRESENT' : day.isAfter(todayUtc) ? 'FUTURE' : 'PAST',
+                    threshold: dailyThreshold
+                  })
+                  acc.totalTickets += volume.volume >= dailyThreshold ? 1 : 0
+                  if (day.isSame(todayUtc, 'day')) {
+                    acc.currentDayTotal += volume.volume
+                    acc.todaysDate = dayjs.utc(volume.day)
+                  }
+                  return acc
+                },
+                { days: [], currentDayTotal: 0, totalTickets: 0, todaysDate: dayjs() }
+              )
+            : undefined
 
         setRaffle({
-          ...offerDetailsRef.current,
+          ...raffleDetails.config,
           startTime: startTime.startOf('day'),
           endTime: endTime.endOf('day'),
-          lastUpdated: dayjs(userVolume.volumes.find((volume) => dayjs(volume.day).isSame(todayUtc, 'day'))?.updatedAt),
+          lastUpdated: dayjs(raffleDetails.volumes.find((volume) => dayjs(volume.day).isSame(todayUtc, 'day'))?.updatedAt),
           days,
-          userDetails
+          userDetails,
+          todaysThreshold: raffleDetails.config.dailyVolumeRequired[todayUtc.format('M-D-YY')]
         })
       } catch (error) {
         setError(error as string)

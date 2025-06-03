@@ -4,7 +4,6 @@ import { Text, Flex, HStack, VStack, Badge, Tooltip, Skeleton, SkeletonText } fr
 import { useMemo } from 'react'
 
 interface TorqueLeaderboardCardProps extends TorqueLeaderboardPosition {
-  amountDenomination: string
   isCurrentUser: boolean
 }
 
@@ -13,14 +12,7 @@ const truncateAddress = (address: string) => {
   return `${address.slice(0, 4)}...${address.slice(-4)}`
 }
 
-export default function TorqueLeaderboardCard({
-  rank,
-  wallet,
-  amount,
-  amountDenomination,
-  isCurrentUser,
-  reward
-}: TorqueLeaderboardCardProps) {
+export default function TorqueLeaderboardCard({ rank, wallet, amount, isCurrentUser, reward }: TorqueLeaderboardCardProps) {
   const { rankColor, borderColor } = useMemo(() => {
     let rankColor
 
@@ -64,7 +56,7 @@ export default function TorqueLeaderboardCard({
         </HStack>
         <HStack>
           <Text fontSize="xs" w="full" color={colors.textTertiary}>
-            {amount} Score
+            {amount} Points
           </Text>
         </HStack>
       </VStack>
