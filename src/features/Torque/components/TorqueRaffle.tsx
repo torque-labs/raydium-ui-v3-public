@@ -1,9 +1,6 @@
-import { Heading, Stack, Text, Spinner, VStack, HStack, Badge, Skeleton, SkeletonText, Progress, Flex } from '@chakra-ui/react'
-import { TorqueLeaderboardCardSkeleton } from './TorqueLeaderboardCard'
+import { Heading, Stack, Text, Spinner, VStack, HStack, Badge, Skeleton, SkeletonText, Progress, Flex, Box } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables'
 import { TorqueCountdown } from './TorqueCountDown'
-import LeaderboardIcon from '@/icons/misc/Leaderboard'
-import MedalIcon from '@/icons/misc/Medal'
 import TicketIcon from '@/icons/misc/TicketIcon'
 import { TorqueRaffle as TorqueRaffleType } from '../types'
 import { displayNumber } from '../utils'
@@ -26,7 +23,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
   if (loading || !raffle) {
     return (
       <Wrapper>
-        <TorqueLeaderboardSkeleton />
+        <TorqueRaffleSkeleton />
       </Wrapper>
     )
   }
@@ -254,7 +251,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
-function TorqueLeaderboardSkeleton() {
+function TorqueRaffleSkeleton() {
   return (
     <VStack w="full" h="full" spacing={4}>
       <VStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark}>
@@ -271,14 +268,32 @@ function TorqueLeaderboardSkeleton() {
             <Skeleton height={9} width={14} />
           </HStack>
         </HStack>
+        <SkeletonText w="full" noOfLines={2} />
+        <Skeleton height={3} width={'100%'} />
       </VStack>
-      <Section title="Your Position" icon={<MedalIcon />}>
-        <TorqueLeaderboardCardSkeleton />
+      <Section title="My Progress Today" icon={<GaugeIcon />}>
+        <VStack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} alignItems={'flex-start'}>
+          <SkeletonText w="30%" noOfLines={1} />
+          <Skeleton width={'100%'} height={3} borderRadius={'md'} />
+          <SkeletonText w="70%" noOfLines={1} />
+        </VStack>
       </Section>
-      <Section title="Leaderboard" icon={<LeaderboardIcon />}>
-        {Array.from({ length: 10 }).map((_, index) => (
-          <TorqueLeaderboardCardSkeleton key={index} />
-        ))}
+      <Section title="My Weekly Activity" icon={<CalendarIcon />}>
+        <HStack w="full" spacing={4} p={3} borderRadius="md" bg={colors.backgroundDark} justifyContent={'space-between'}>
+          {Array.from({ length: 7 }).map((_, index) => (
+            <Skeleton width={'100%'} h={8} w={8} borderRadius={'sm'} key={index} />
+          ))}
+        </HStack>
+      </Section>
+      <Section title="Prize Tiers" icon={<GiftIcon />}>
+        <Box w="full" p={3} borderRadius="md" bg={colors.backgroundDark}>
+          <SkeletonText noOfLines={10} />
+        </Box>
+      </Section>
+      <Section title="Raffle Details" icon={<TicketIcon />}>
+        <Box w="full" p={3} borderRadius="md" bg={colors.backgroundDark}>
+          <SkeletonText noOfLines={10} />
+        </Box>
       </Section>
     </VStack>
   )
