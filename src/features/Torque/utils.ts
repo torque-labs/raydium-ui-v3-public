@@ -1,4 +1,4 @@
-import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer } from './types'
+import { TorqueConversion, TorqueLeaderboardOffer, TorqueOffer, TorqueRawLeaderboard, TorqueRawOffer, TorqueRawRaffle } from './types'
 
 /**
  * Torque API URL
@@ -13,7 +13,8 @@ const TORQUE_API_ROUTES = {
   conversions: (wallet: string) => `/conversions/wallet/${wallet}` as const,
   claim: (offerId: string) => `/claim/${offerId}` as const,
   leaderboard: (leaderboardId: string) => `/leaderboard/${leaderboardId}` as const,
-  audience: (projectId: string, audienceId: string) => `/projects/${projectId}/audience/${audienceId}` as const
+  audience: (projectId: string, audienceId: string) => `/projects/${projectId}/audience/${audienceId}` as const,
+  raffle: () => `/raydium/weekly-raffle` as const
 }
 
 /**
@@ -111,6 +112,10 @@ export async function fetchLeaderboardOfferDetails() {
 
   // Parse and return the response data
   return (await response.json()) as TorqueLeaderboardOffer
+}
+
+export async function fetchRaffleDetails(wallet?: string) {
+  return fetchTorqueData<TorqueRawRaffle>(TORQUE_API_ROUTES.raffle(), wallet ? { pubkey: wallet } : undefined)
 }
 
 /**

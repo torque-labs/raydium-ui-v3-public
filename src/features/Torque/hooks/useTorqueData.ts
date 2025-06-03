@@ -122,50 +122,52 @@ export function useTorqueData({ wallet }: { wallet: Wallet | null | undefined })
         fetchConversionsByWallet(walletAddress, RAYDIUM_PROJECT_ID)
       ])
 
-      const offersWithConversions: TorqueOffer[] = rawOffers.map((offer) => {
-        const conversion = conversions.find((conversion) => conversion.offer.id === offer.id)
-        const crank = conversion && conversion.cranks.length > 0 ? conversion.cranks[0] : undefined
-        const distributor = offer.distributors.length > 0 ? offer.distributors[0] : undefined
+      const offersWithConversions: TorqueOffer[] = rawOffers
+        .filter((offer) => dayjs(offer.startTime).isBefore(dayjs()))
+        .map((offer) => {
+          const conversion = conversions.find((conversion) => conversion.offer.id === offer.id)
+          const crank = conversion && conversion.cranks.length > 0 ? conversion.cranks[0] : undefined
+          const distributor = offer.distributors.length > 0 ? offer.distributors[0] : undefined
 
-        if (!distributor) {
-          throw new Error('Distributor not found')
-        }
+          if (!distributor) {
+            throw new Error('Distributor not found')
+          }
 
-        // Calculate the rewards
-        const rewardTotal = distributor.totalFundAmount
-        const rewardPerUser = offer.eligibleAmount
+          // Calculate the rewards
+          const rewardTotal = distributor.totalFundAmount
+          const rewardPerUser = offer.eligibleAmount
 
-        // Get the token details
-        const rewardToken = typeof distributor.tokenAddress === 'string' ? tokenMap.get(distributor.tokenAddress) : undefined
-        // The fallback is currently set to RAY just in case the token is not found as we have not been to verify the token fetch works
-        const rewardDenomination = distributor.emissionType === 'SOL' ? 'SOL' : rewardToken?.symbol ?? 'RAY'
+          // Get the token details
+          const rewardToken = typeof distributor.tokenAddress === 'string' ? tokenMap.get(distributor.tokenAddress) : undefined
+          // The fallback is currently set to RAY just in case the token is not found as we have not been to verify the token fetch works
+          const rewardDenomination = distributor.emissionType === 'SOL' ? 'SOL' : rewardToken?.symbol ?? 'RAY'
 
-        // Calculate the offer status
-        const startTime = dayjs(offer.startTime)
-        const endTime = dayjs(offer.endTime)
-        const isOfferActive = offer.status === 'ACTIVE' || (startTime.isBefore(dayjs()) && endTime.isAfter(dayjs()))
-        const crankStatus =
-          crank?.status === 'DONE' ? 'CLAIMED' : crank?.status === 'PENDING' || crank?.status === 'STAGED' ? 'PENDING' : undefined
-        const status = crankStatus ? crankStatus : offer.eligible ? (isOfferActive ? 'ACTIVE' : 'EXPIRED') : 'INELIGIBLE'
+          // Calculate the offer status
+          const startTime = dayjs(offer.startTime)
+          const endTime = dayjs(offer.endTime)
+          const isOfferActive = offer.status === 'ACTIVE' || (startTime.isBefore(dayjs()) && endTime.isAfter(dayjs()))
+          const crankStatus =
+            crank?.status === 'DONE' ? 'CLAIMED' : crank?.status === 'PENDING' || crank?.status === 'STAGED' ? 'PENDING' : undefined
+          const status = crankStatus ? crankStatus : offer.eligible ? (isOfferActive ? 'ACTIVE' : 'EXPIRED') : 'INELIGIBLE'
 
-        return {
-          id: offer.id,
-          name: offer.metadata.title,
-          description: offer.metadata.description,
-          status,
-          startTime,
-          endTime,
-          eligible: offer.eligible,
-          txSignature: crank?.transaction,
-          distributor: distributor ? new PublicKey(distributor.pubkey) : undefined,
-          rewardPerUser,
-          rewardTotal,
-          rewardDenomination,
-          numberOfConversions: offer.numberOfConversions,
-          maxParticipants: distributor.crankGuard.availability.maxTotalConversions,
-          campaignId: offer.campaignId
-        }
-      })
+          return {
+            id: offer.id,
+            name: offer.metadata.title,
+            description: offer.metadata.description,
+            status,
+            startTime,
+            endTime,
+            eligible: offer.eligible,
+            txSignature: crank?.transaction,
+            distributor: distributor ? new PublicKey(distributor.pubkey) : undefined,
+            rewardPerUser,
+            rewardTotal,
+            rewardDenomination,
+            numberOfConversions: offer.numberOfConversions,
+            maxParticipants: distributor.crankGuard.availability.maxTotalConversions,
+            campaignId: offer.campaignId
+          }
+        })
 
       const campaigns = offersWithConversions.reduce((acc, offer) => {
         const id = offer.id

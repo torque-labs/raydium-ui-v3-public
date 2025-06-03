@@ -4,10 +4,12 @@ import Tabs from '@/components/Tabs'
 import TorqueClaimRewards from './TorqueClaimRewards'
 import GiftIcon from '@/icons/misc/Gift'
 import { TorqueCampaign } from '../types'
-import TorqueComingSoon from './TorqueComingSoon'
 import TorqueLeaderboard from './TorqueLeaderboard'
 import LeaderboardIcon from '@/icons/misc/Leaderboard'
 import { useTorqueLeaderboard } from '../hooks/useTorqueLeaderboard'
+import TicketIcon from '@/icons/misc/TicketIcon'
+import TorqueRaffle from './TorqueRaffle'
+import { useTorqueRaffle } from '../hooks/useTorqueRaffle'
 
 interface Props {
   isOpen: boolean
@@ -18,12 +20,19 @@ interface Props {
   campaigns: TorqueCampaign[]
 }
 
-const TABS = ['Leaderboard', 'Claim', 'Redacted'] as const
+const TABS = ['Raffle', 'Leaderboard', 'Claim'] as const
 type TabEnum = typeof TABS[number]
 
 export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, campaignsLoading, campaignsError, campaigns }: Props) {
-  const [selectedTab, setSelectedTab] = useState<TabEnum>('Leaderboard')
-  const { leaderboard, loading: leaderboardLoading, error: leaderboardError, lastUpdated, refetching } = useTorqueLeaderboard()
+  const [selectedTab, setSelectedTab] = useState<TabEnum>('Raffle')
+  const {
+    leaderboard,
+    loading: leaderboardLoading,
+    error: leaderboardError,
+    lastUpdated,
+    refetching: leaderboardRefetching
+  } = useTorqueLeaderboard()
+  const { raffle, loading: raffleLoading, error: raffleError, refetching: raffleRefetching } = useTorqueRaffle()
 
   return (
     <Wrapper isOpen={isOpen} onClose={onClose} setSelectedTab={setSelectedTab} selectedTab={selectedTab}>
@@ -33,13 +42,15 @@ export default function TorqueDrawer({ isOpen, onClose, handleClaimOffer, campai
           loading={leaderboardLoading}
           error={leaderboardError}
           lastUpdated={lastUpdated}
-          refetching={refetching}
+          refetching={leaderboardRefetching}
         />
       )}
       {selectedTab === 'Claim' && (
         <TorqueClaimRewards claimOffer={handleClaimOffer} campaigns={campaigns} loading={campaignsLoading} error={campaignsError} />
       )}
-      {selectedTab === 'Redacted' && <TorqueComingSoon />}
+      {selectedTab === 'Raffle' && (
+        <TorqueRaffle raffle={raffle} loading={raffleLoading} error={raffleError} refetching={raffleRefetching} />
+      )}
     </Wrapper>
   )
 }
@@ -77,7 +88,7 @@ function Wrapper({
                 <HStack gap={1}>
                   {item === 'Claim' && <GiftIcon />}
                   {item === 'Leaderboard' && <LeaderboardIcon />}
-                  {/* {item === 'Active' && <ZapIcon />} */}
+                  {item === 'Raffle' && <TicketIcon />}
                   <Text>{item}</Text>
                 </HStack>
               )}
