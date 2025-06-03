@@ -36,7 +36,7 @@ export function useTorqueLeaderboard() {
 
         const leaderboardEntries = leaderboard.entries.map((entry, index) => {
           const reward = offerDetailsRef.current?.positionRewards[index + 1]
-            ? offerDetailsRef.current?.positionRewards[index + 1]
+            ? offerDetailsRef.current.positionRewards[index + 1]
             : undefined
 
           return {
