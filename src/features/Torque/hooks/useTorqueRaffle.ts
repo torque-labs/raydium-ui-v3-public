@@ -71,7 +71,7 @@ export function useTorqueRaffle() {
                   })
                   acc.totalTickets += volume.volume >= dailyThreshold ? 1 : 0
                   if (day.isSame(todayUtc, 'day')) {
-                    acc.currentDayTotal += volume.volume
+                    acc.currentDayTotal = volume.volume
                     acc.todaysDate = dayjs.utc(volume.day)
                   }
                   return acc
