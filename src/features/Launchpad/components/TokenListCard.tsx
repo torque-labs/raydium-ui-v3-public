@@ -1,20 +1,12 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react'
-import { Box, Grid, Flex, Text, Link, Image, Skeleton, useColorMode, useClipboard, Tooltip, Img } from '@chakra-ui/react'
+import React, { useEffect, useRef, useMemo } from 'react'
+import { Box, Grid, Flex, Text, Image, Skeleton, useColorMode, useClipboard, Tooltip } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables/colors'
-import StarIcon from '@/icons/misc/StarIcon'
-import TelegrameIcon from '@/icons/misc/TelegrameIcon'
-import TwitterIcon from '@/icons/misc/TwitterIcon'
-import WebIcon from '@/icons/misc/WebIcon'
-import NextLink from 'next/link'
 import { useRouter } from 'next/router'
 import ThreeStageProgress from './ThreeStageProgress'
 import { MintInfo } from '../type'
 import { formatCurrency } from '@/utils/numberish/formatter'
-import { createTimeDiff, getMintWatchList, setMintWatchList, useReferrerQuery } from '../utils'
-import { useEvent } from '@/hooks/useEvent'
+import { createTimeDiff, useReferrerQuery } from '../utils'
 import NotFound from '@/components/NotFound'
-import { useDialogsStore } from '@/store'
-import { DialogTypes } from '@/constants/dialogs'
 import CircleCheck from '@/icons/misc/CircleCheck'
 import CopyLaunchpadIcon from '@/icons/misc/CopyLaunchpadIcon'
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
@@ -23,8 +15,8 @@ import { listContext } from '@/components/List'
 import Curve from '@/icons/misc/Curve'
 import { getImgProxyUrl } from '@/utils/url'
 import useResponsive from '@/hooks/useResponsive'
-import { LaunchpadPoolInitParam } from '@raydium-io/raydium-sdk-v2'
 import { motion } from 'framer-motion'
+import { SocialLinks } from './SocialLinks'
 
 const HEATING_RATE = 33.3
 
@@ -78,22 +70,11 @@ const TokenListCard = ({
 }) => {
   const parentRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLDivElement>(null)
-  const [watchList, setWatchList] = useState(getMintWatchList())
   const { isMobile } = useResponsive()
   const isEmpty = !isLoading && tokens.length === 0
 
   const { observe, stop } = useIntersectionObserver({ rootRef: parentRef, options: { rootMargin: '80%' } })
   const contextValue = useMemo(() => ({ observeFn: observe }), [observe])
-
-  const onUpdateWatchList = useEvent((mint: string, isAdd: boolean) => {
-    const newWatchSet = new Set(Array.from(watchList))
-    if (isAdd) {
-      newWatchSet.add(mint)
-    } else newWatchSet.delete(mint)
-
-    setWatchList(newWatchSet)
-    setMintWatchList(Array.from(newWatchSet.values()))
-  })
 
   useEffect(() => stop, [])
 
@@ -168,7 +149,7 @@ const TokenListCard = ({
                   }}
                   style={{ width: '100%' }}
                 >
-                  {<TokenCard token={token} watchList={watchList} onUpdateWatchList={onUpdateWatchList} />}
+                  {<TokenCard token={token} />}
                 </motion.div>
               </ListItem>
             ))}
@@ -178,16 +159,7 @@ const TokenListCard = ({
   )
 }
 
-const TokenCard = ({
-  token,
-  watchList,
-  onUpdateWatchList
-}: {
-  token: MintInfo
-  watchList: Set<string>
-  onUpdateWatchList: (mint: string, isAdd: boolean) => void
-}) => {
-  const openDialog = useDialogsStore((s) => s.openDialog)
+const TokenCard = ({ token }: { token: MintInfo }) => {
   const { colorMode } = useColorMode()
   const isLight = colorMode === 'light'
   const router = useRouter()
@@ -304,39 +276,16 @@ const TokenCard = ({
                 </Box>
               </Tooltip>
             )}
-            <Flex alignItems="center" gap="0.5">
-              {token.platformInfo.pubKey !== LaunchpadPoolInitParam.platformId.toBase58() ? (
-                <Img width="14px" src={token.platformInfo.img} />
-              ) : null}
-              {token.twitter ? (
-                <Link as={NextLink} href={token.twitter} isExternal onClick={(e) => e.stopPropagation()}>
-                  <TwitterIcon color={colors.textLaunchpadLink} />
-                </Link>
-              ) : null}
-              {token.website ? (
-                <Box
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    openDialog(DialogTypes.ThirdPartyWarning({ url: token.website! }))
-                  }}
-                >
-                  <WebIcon color={colors.textLaunchpadLink} />
-                </Box>
-              ) : null}
-              {token.telegram ? (
-                <Link as={NextLink} href={token.telegram} isExternal onClick={(e) => e.stopPropagation()}>
-                  <TelegrameIcon color={colors.textLaunchpadLink} />
-                </Link>
-              ) : null}
-              <Box
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onUpdateWatchList(token.mint, !watchList.has(token.mint))
-                }}
-              >
-                <StarIcon selected={watchList.has(token.mint)} />
-              </Box>
-            </Flex>
+            <SocialLinks
+              platformInfo={token.platformInfo}
+              twitter={token.twitter}
+              website={token.website}
+              telegram={token.telegram}
+              mint={token.mint}
+              sx={{
+                gap: '0.5'
+              }}
+            />
           </Flex>
         </Grid>
         <Grid templateColumns="5rem 1fr" gap="10px">

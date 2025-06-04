@@ -88,9 +88,9 @@ export default function useTopMintList({
   const { data, error, ...rest } = useSWR(
     shouldFetch
       ? [
-          `${mintHost}/get/list?sort=${MintSortField.New}&size=${size}${`&includeNsfw=${includeNsfw}`}${
-            platformId ? `&platformId=${platformId}` : ''
-          }`,
+          `${mintHost}/get/list?sort=${MintSortField.New}&size=${size}${`&includeNsfw=${includeNsfw}`}${`&platformId=${
+            platformId || 'PlatformWhiteList'
+          }`}`,
           `${mintHost}/get/random/index-left-mint`,
           `${mintHost}/get/random/index-top-mint`,
           timeTag

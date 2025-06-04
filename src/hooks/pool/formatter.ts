@@ -147,7 +147,7 @@ export function formatPoolData(pool: ApiV3PoolInfoItem): FormattedPoolInfoItem {
     },
     formattedRewardInfos,
     isRewardEnded: !formattedRewardInfos.some((r) => !r.ended)
-  }
+  } as FormattedPoolInfoItem
 }
 
 export const poolInfoCache: Map<string, ApiV3PoolInfoItem> = new Map()

@@ -46,18 +46,18 @@ const MetasContent = memo(({ onMetaSelected, activeMeta, metas }: MetasContentPr
           scrollbarWidth: 'none'
         }}
       >
-        <Flex gap={[1, 3]} width="fit-content">
+        <Flex gap={3} width="fit-content">
           {metas && metas.map
             ? metas.map((meta) => {
                 const isActive = activeMeta === meta.word
                 return (
                   <Button
                     key={meta.word}
-                    minWidth="auto"
+                    minWidth={['40px', 'auto']}
                     onClick={() => onMetaSelected(isActive ? '' : meta.word)}
                     display="flex"
-                    height="38px"
-                    minHeight="38px"
+                    height={['40px', '38px']}
+                    minHeight={['40px', '38px']}
                     justifyContent="center"
                     alignItems="center"
                     gap="1"

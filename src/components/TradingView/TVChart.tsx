@@ -361,7 +361,11 @@ export default function TVChart({
               },
               { shape: isUp ? 'arrow_up' : 'arrow_down', overrides: { fontsize: 8, visible: true, arrowColor: 'yellow' } }
             )!
-            chartIns.bringToFront([id])
+            try {
+              chartIns.bringToFront([id])
+            } catch {
+              console.info('bringToFront not works')
+            }
             lastEntityId = id
 
             let i = 0
@@ -377,7 +381,7 @@ export default function TVChart({
             }, 100)
 
             // lastClose = d.close
-          } catch {
+          } catch (e) {
             console.log('reset')
             chartIns.resetData()
           }

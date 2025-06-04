@@ -49,10 +49,9 @@ export default function useMintList({
   const mintType = useMemo(() => {
     const value = propsMintType?.replace('_up', '')
     if (validTypeValue.indexOf(value) === -1) return 'default'
-    return value
+    return value || 'default'
   }, [propsMintType])
-  const nextPageRef = useRef<Map<number, string>>(new Map())
-
+  const nextPageRef = useRef<Map<string, Record<number, string>>>(new Map())
   const {
     data,
     setSize,
@@ -61,11 +60,15 @@ export default function useMintList({
     ...rest
   } = useSWRInfinite(
     (index) =>
-      shouldFetch && (index === 0 || (index > 0 && nextPageRef.current.get(index)))
+      shouldFetch && (index === 0 || (index > 0 && nextPageRef.current.get(`${sort}-${mintType}`)?.[index]))
         ? [
-            `${mintHost}/get/list?sort=${sort}&size=${size}&mintType=${mintType || 'default'}${`&includeNsfw=${includeNsfw}`}${
+            `${mintHost}/get/list?sort=${sort}&size=${size}&mintType=${mintType}${`&includeNsfw=${includeNsfw}`}${
               platformId ? `&platformId=${platformId}` : ''
-            }${nextPageRef.current.get(index) ? `&nextPageId=${nextPageRef.current.get(index)}` : ''}`,
+            }${
+              nextPageRef.current.get(`${sort}-${mintType}`)?.[index]
+                ? `&nextPageId=${nextPageRef.current.get(`${sort}-${mintType}`)![index]}`
+                : ''
+            }`,
             timeTag
           ]
         : null,
@@ -85,6 +88,7 @@ export default function useMintList({
 
   useEffect(() => {
     return () => {
+      setSize(1)
       nextPageRef.current = new Map()
     }
   }, [sort, platformId, includeNsfw, mintType, size])
@@ -92,7 +96,9 @@ export default function useMintList({
   const resData = useMemo(() => {
     const mintSet = new Set<string>()
     data?.forEach((d, idx) => {
-      if (nextPageRef.current.has(idx + 1) && d.data.nextPageId) nextPageRef.current.set(idx + 1, d.data.nextPageId)
+      const pageData = nextPageRef.current.get(`${sort}-${mintType}`) || {}
+      if (pageData?.[idx + 1] && d.data.nextPageId)
+        nextPageRef.current.set(`${sort}-${mintType}`, { ...pageData, [idx + 1]: d.data.nextPageId })
     })
     return (
       data
@@ -104,11 +110,17 @@ export default function useMintList({
           return true
         }) || []
     )
-  }, [data])
+  }, [data, sort, mintType])
   const hasMore = data && !!data[data.length - 1].data.nextPageId
+
   const loadMore = useEvent(() => {
     if (!hasMore) return
-    nextPageRef.current.set(page, data[data.length - 1].data.nextPageId!)
+    const pageData = nextPageRef.current.get(`${sort}-${mintType}`) || {}
+    nextPageRef.current.set(`${sort}-${mintType}`, {
+      ...pageData,
+      [page]: data[data.length - 1].data.nextPageId!
+    })
+    // nextPageRef.current.set(page, data[data.length - 1].data.nextPageId!)
     setSize((s) => s + 1)
   })
 

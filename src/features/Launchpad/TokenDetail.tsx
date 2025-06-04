@@ -39,6 +39,7 @@ import { getImgProxyUrl } from '@/utils/url'
 import { isMobile } from 'react-device-detect'
 import useFetchRpcPoolData from '@/hooks/pool/amm/useFetchRpcPoolData'
 import useFetchCpmmRpcPoolData from '@/hooks/pool/amm/useFetchCpmmRpcPoolData'
+import useMeta from '@/hooks/launchpad/useMeta'
 
 enum Tab {
   Comments = 'Comments',
@@ -97,6 +98,11 @@ const TokenDetail = () => {
   const { data: mintData, mutate, isEmptyResult } = useMintInfo({ mints: [mint] })
   const mintInfo = mintData.find((m) => m.mint === mint)
   const poolId = mintInfo?.poolId
+
+  const meta = useMeta({ shouldFetch: mintInfo && !mintInfo?.description, url: mintInfo?.metadataUrl })
+  if (mintInfo && meta) {
+    mintInfo.description = mintInfo.description || meta.description
+  }
 
   const { colorMode } = useColorMode()
   const isLight = colorMode === 'light'
@@ -275,7 +281,8 @@ const TokenDetail = () => {
     mutate,
     poolInfo?.mintA,
     data[mintB ?? ''],
-    poolVault
+    poolVault,
+    meta
   ])
 
   useEffect(() => {
@@ -354,7 +361,7 @@ const TokenDetail = () => {
                   }
                   bgClip="text"
                 >
-                  Half of fees from tokens created on the LaunchLab UI go to the Community Pool! More info soon!
+                  Rewards are LIVE for traders AND creators! Check ‘Rewards’ tab and X account for updates!
                 </Text>
               </Flex>
               <X width="22px" height="22px" color="#4F53F3" cursor="pointer" onClick={() => setIsFeeDistributionBannerShown(true)} />

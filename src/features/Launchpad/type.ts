@@ -72,4 +72,6 @@ export interface MintInfo {
 
   totalSellA: string
   totalFundRaisingB: string
+
+  migrateType: 'cpmm' | 'amm'
 }

@@ -86,6 +86,42 @@ const ImageUploader = ({
     [isDragging]
   )
 
+  const fetchImageFromUrl = useCallback(
+    async (url: string) => {
+      try {
+        const response = await fetch(url)
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`)
+        }
+
+        const blob = await response.blob()
+
+        const fileExtension = blob.type.split('/')[1] || 'png'
+        const fileName = `image_${Date.now()}.${fileExtension}`
+        const file = new File([blob], fileName, { type: blob.type })
+
+        if (validateFile(file)) {
+          setPreviewUrl(URL.createObjectURL(file))
+          onImageUpload(file)
+          if (onError) onError(null)
+        }
+      } catch (error) {
+        let errorMessage = 'Failed to load image.'
+
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+          errorMessage = 'Unable to access this image due to security restrictions. Try saving it first.'
+        } else if (error instanceof Error) {
+          errorMessage = error.message
+        }
+
+        if (onError) onError(errorMessage)
+        return false
+      }
+    },
+    [validateFile, onImageUpload, onError]
+  )
+
   const handleDrop = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault()
@@ -93,9 +129,35 @@ const ImageUploader = ({
       setIsDragging(false)
 
       const files = e.dataTransfer.files
-      handleFiles(files)
+      if (files && files.length > 0) {
+        handleFiles(files)
+        return
+      }
+      const availableTypes = Array.from(e.dataTransfer.types)
+
+      if (availableTypes.includes('text/html')) {
+        const html = e.dataTransfer.getData('text/html')
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(html, 'text/html')
+        const imgElement = doc.querySelector('img')
+
+        if (imgElement && imgElement.src) {
+          fetchImageFromUrl(imgElement.src)
+          return
+        }
+      }
+
+      if (availableTypes.includes('text/plain')) {
+        const text = e.dataTransfer.getData('text/plain')
+        if (text.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i)) {
+          fetchImageFromUrl(text)
+          return
+        }
+      }
+
+      if (onError) onError("Couldn't detect a valid image from the dropped content. Try saving the image first.")
     },
-    [handleFiles]
+    [handleFiles, fetchImageFromUrl, onError]
   )
 
   const handleFileInputChange = useCallback(

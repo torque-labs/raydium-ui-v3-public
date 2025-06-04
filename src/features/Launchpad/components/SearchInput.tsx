@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, ChangeEvent, KeyboardEvent } from 'react'
+import { useCallback, useEffect, ChangeEvent, forwardRef, Ref } from 'react'
 import { Input, InputGroup, InputLeftElement, useColorMode } from '@chakra-ui/react'
 import SearchIcon from '@/icons/misc/SearchIcon'
 import { MintInfo } from '../type'
@@ -17,9 +17,7 @@ interface Props {
   onSearchResultChange?: (props: OnSearchChangeData) => void
 }
 
-export const SearchInput = ({ includeNsfw, onSearchResultChange }: Props) => {
-  // const [searchTerm, setSearchTerm] = useState('')
-
+export const SearchInput = forwardRef(({ includeNsfw, onSearchResultChange }: Props, ref: Ref<HTMLInputElement>) => {
   const [searchTerm, setSearchTerm] = useStateWithUrl<string>('', 'search', {
     fromUrl: (v) => v,
     toUrl: (v) => String(v)
@@ -37,8 +35,6 @@ export const SearchInput = ({ includeNsfw, onSearchResultChange }: Props) => {
     onSearchResultChange?.({ searchTerm, data, hasMore: hasNextPage, onLoadMore, isLoading })
   }, [onSearchResultChange, searchTerm, data, hasNextPage, onLoadMore, isLoading])
 
-  const inputRef = useRef<HTMLInputElement>(null)
-
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value
@@ -51,15 +47,16 @@ export const SearchInput = ({ includeNsfw, onSearchResultChange }: Props) => {
   )
 
   return (
-    <InputGroup width="100%" maxWidth={['14.375rem', '11.5625rem', '16.25rem']}>
-      <InputLeftElement pointerEvents="none">
+    <InputGroup width="100%" maxWidth={['100%', '11.5625rem', '16.25rem']}>
+      <InputLeftElement pointerEvents="none" height={['34px', '2.5rem']}>
         <SearchIcon color={isLight ? '#474ABB' : '#C4D6FF80'} />
       </InputLeftElement>
       <Input
         width="100%"
+        height={['34px', '2.5rem']}
         type="search"
         value={searchTerm}
-        ref={inputRef}
+        ref={ref}
         name="search-token"
         id="search-token"
         onChange={handleInputChange}
@@ -91,4 +88,4 @@ export const SearchInput = ({ includeNsfw, onSearchResultChange }: Props) => {
       />
     </InputGroup>
   )
-}
+})

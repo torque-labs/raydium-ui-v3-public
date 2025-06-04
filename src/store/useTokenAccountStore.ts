@@ -287,10 +287,10 @@ export const useTokenAccountStore = createStore<TokenAccountStore>(
 
       const tokenInfo = useTokenStore.getState().tokenMap.get(mint)
       const tokenDecimal = decimals ?? tokenInfo?.decimals ?? 6
-      const tokenAccount =
-        get()
-          .tokenAccountMap.get(mint)
-          ?.find((acc) => acc.isAssociated || acc.isNative === isNative) || get().tokenAccountMap.get(mint)?.[0]
+      let tokenAccount = get()
+        .tokenAccountMap.get(mint)
+        ?.find((acc) => acc.isAssociated || acc.isNative === isNative)
+      if (!tokenAccount || tokenAccount.amount.isZero()) tokenAccount = get().tokenAccountMap.get(mint)?.[0]
       if (!tokenAccount) return defaultVal
       if (!tokenInfo && decimals === undefined) return defaultVal
 

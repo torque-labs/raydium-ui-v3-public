@@ -1,19 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Box, Divider, Flex, Grid, Text, Link, Tooltip, useColorMode, useClipboard, Image } from '@chakra-ui/react'
-import StarIcon from '@/icons/misc/StarIcon'
-import TelegrameIcon from '@/icons/misc/TelegrameIcon'
-import TwitterIcon from '@/icons/misc/TwitterIcon'
-import WebIcon from '@/icons/misc/WebIcon'
+import { Box, Divider, Flex, Grid, Text, Tooltip, useColorMode, useClipboard, Image } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables/colors'
-import NextLink from 'next/link'
 import ThreeStageProgress from './ThreeStageProgress'
 import { MintInfo } from '../type'
 import Decimal from 'decimal.js'
 import { formatCurrency } from '@/utils/numberish/formatter'
-import { useAppStore, useDialogsStore } from '@/store'
-import { DialogTypes } from '@/constants/dialogs'
-import { getMintWatchList, setMintWatchList } from '../utils'
-import { useEvent } from '@/hooks/useEvent'
+import { useAppStore } from '@/store'
 import { HelpCircle } from 'react-feather'
 import CircleCheck from '@/icons/misc/CircleCheck'
 import CopyLaunchpadIcon from '@/icons/misc/CopyLaunchpadIcon'
@@ -28,6 +20,7 @@ import TokenAvatar from '@/components/TokenAvatar'
 import { getDurationUText } from '@/utils/time'
 import { getImgProxyUrl } from '@/utils/url'
 import ExternalLink from '@/icons/misc/ExternalLink'
+import { SocialLinks } from './SocialLinks'
 
 export default function Info({
   poolInfo,
@@ -47,25 +40,13 @@ export default function Info({
   isLanded: boolean
   refreshMintInfo?: () => void
 }) {
-  const openDialog = useDialogsStore((s) => s.openDialog)
   const [finishRate, setFinishRate] = useState(mintInfo?.finishingRate ?? 0)
-  const [watchList, setWatchList] = useState(getMintWatchList())
   const { colorMode } = useColorMode()
   const isLight = colorMode === 'light'
   const explorerUrl = useAppStore((s) => s.explorerUrl)
   const { onCopy: copy, hasCopied } = useClipboard(mintInfo ? mintInfo.mint : '')
   const [points, setPoints] = useState<Point[]>([])
   const isLoading = !mintBPrice
-
-  const onUpdateWatchList = useEvent((mint: string, isAdd: boolean) => {
-    const newWatchSet = new Set(Array.from(watchList))
-    if (isAdd) {
-      newWatchSet.add(mint)
-    } else newWatchSet.delete(mint)
-
-    setWatchList(newWatchSet)
-    setMintWatchList(Array.from(newWatchSet.values()))
-  })
 
   const hasMintInfo = !!mintInfo
   useEffect(() => {
@@ -206,40 +187,17 @@ export default function Info({
               ({mintInfo.name})
             </Text>
           </Flex>
-          <Flex color={colors.textLaunchpadLink} height="100%">
-            {mintInfo.twitter ? (
-              <Link as={NextLink} href={mintInfo.twitter} isExternal onClick={(e) => e.stopPropagation()}>
-                <TwitterIcon color={colors.textLaunchpadLink} />
-              </Link>
-            ) : null}
-            {mintInfo.website ? (
-              <Box
-                cursor="pointer"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openDialog(DialogTypes.ThirdPartyWarning({ url: mintInfo.website! }))
-                }}
-              >
-                <WebIcon color={colors.textLaunchpadLink} />
-              </Box>
-            ) : null}
-            {mintInfo.telegram ? (
-              <Link as={NextLink} href={mintInfo.telegram} isExternal onClick={(e) => e.stopPropagation()}>
-                <TelegrameIcon color={colors.textLaunchpadLink} />
-              </Link>
-            ) : null}
-            <Box
-              cursor="pointer"
-              onClick={(e) => {
-                e.stopPropagation()
-                onUpdateWatchList(mintInfo.mint, !watchList.has(mintInfo.mint))
-              }}
-            >
-              <StarIcon selected={watchList.has(mintInfo.mint)} />
-            </Box>
-          </Flex>
+          <SocialLinks
+            twitter={mintInfo.twitter}
+            website={mintInfo.website}
+            telegram={mintInfo.telegram}
+            mint={mintInfo.mint}
+            sx={{
+              alignSelf: 'flex-start'
+            }}
+          />
         </Grid>
-        <Text color={colors.textSecondary} fontSize="sm" mt={3}>
+        <Text color={colors.textSecondary} fontSize="sm" wordBreak="break-word" overflowWrap="break-word" mt={3}>
           {mintInfo.description}
         </Text>
         <Divider my={4} borderColor="#ABC4FF1F" />
@@ -508,7 +466,7 @@ export default function Info({
             </Tooltip> */}
           </Flex>
           <Flex alignItems="center" gap="1">
-            {poolInfo?.migrateType === 1 ? 'Yes' : 'No'}
+            {mintInfo.migrateType === 'cpmm' ? 'Yes' : 'No'}
           </Flex>
         </Flex>
         <Flex alignItems="center" justifyContent="space-between" color={colors.textSecondary} gap={1}>

@@ -151,7 +151,7 @@ export const AddCommentDialog = ({ setIsOpen, poolId, onUploadSuccess }: DialogP
             <ImageUploader
               onImageUpload={handleImageUpload}
               acceptedFileTypes={['image/jpeg', 'image/png', 'image/gif']}
-              maxFileSizeInMB={1}
+              maxFileSizeInMB={5}
               onError={(error) => {
                 if (error) {
                   setUploadError(error)

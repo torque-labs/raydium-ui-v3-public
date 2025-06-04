@@ -127,7 +127,7 @@ const Profile = () => {
 
   if (!wallet) return <ConnectedButton w="fit-content" mx="auto" />
   return (
-    <Grid templateRows="auto auto 1fr 0.2fr" gap={5} height="100%">
+    <Grid templateRows="auto auto 1fr" gap={5} height="100%">
       <GridItem>
         <Flex alignItems="center" gap={1} opacity={0.5}>
           <Link as={NextLink} href={`/launchpad${referrerQuery.replace('&', '?')}`} display="contents" shallow color={colors.lightPurple}>
@@ -192,8 +192,10 @@ const Profile = () => {
         ) : null}
         {referrerInfo.length ? (
           <Box mt={8}>
-            <Text mb="2">{t('launchpad.referrer_fee_earned')}</Text>
-            <Flex gap="1" alignItems={'center'} color={colors.textSecondary}>
+            <Text color={colors.lightPurple} mb="2">
+              {t('launchpad.referrer_fee_earned')}
+            </Text>
+            <Flex gap="3" alignItems={'center'} color={colors.textSecondary}>
               {referrerInfo.map((referrer, idx) => (
                 <Flex
                   key={`${referrer.mintInfo.symbol}-${idx}`}

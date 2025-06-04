@@ -8,7 +8,7 @@ import { useTorqueData } from '../hooks/useTorqueData'
 export default function TorqueButton() {
   const { wallet } = useWallet()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const { offers, handleClaimOffer, loading, error, activeOffersCount } = useTorqueData({ wallet })
+  const { handleClaimOffer, loading, error, activeOffersCount, campaigns } = useTorqueData({ wallet })
 
   return (
     <>
@@ -23,10 +23,10 @@ export default function TorqueButton() {
         <TorqueDrawer
           isOpen={isOpen}
           onClose={onClose}
-          offers={offers}
           handleClaimOffer={handleClaimOffer}
-          loading={loading}
-          error={error}
+          campaignsLoading={loading}
+          campaignsError={error}
+          campaigns={campaigns}
         />
       )}
     </>
