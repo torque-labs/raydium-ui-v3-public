@@ -28,7 +28,7 @@ export function useTorqueRaffle() {
         // Using empty wallet is none is there to then be able to populate the details in the UI
         const raffleDetails = await fetchRaffleDetails(wallet.publicKey?.toBase58() ?? undefined)
 
-        const todayUtc = dayjs().utc().startOf('day')
+        const todayUtc = dayjs().startOf('day')
 
         const days: { day: Dayjs; threshold: number }[] = []
         let startTime = dayjs()
