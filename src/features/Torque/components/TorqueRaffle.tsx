@@ -179,7 +179,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
             <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Total
             </Text>
-            <Badge variant="crooked">
+            <Badge variant="crooked" fontSize={'xs'}>
               {displayNumber(raffle.totalRewards)} {raffle.rewardDenomination}
             </Badge>
           </Flex>
