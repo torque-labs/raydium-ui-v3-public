@@ -36,8 +36,8 @@ export function useTorqueRaffle() {
 
         Object.entries(raffleDetails.config.dailyVolumeRequired).forEach(([day, volume]) => {
           // The date is formatted as M-D-YY but in Safari it doesn't see it as a valid date so we need to convert it to a valid date in it's eyes
-          const strDate = formatBadDateString(day)
-          const formattedDay = dayjs(strDate)
+          const strDate = formatBadDateString(day, true)
+          const formattedDay = dayjs(strDate).utc()
           days.push({ day: formattedDay, threshold: volume })
           if (formattedDay.isBefore(startTime)) {
             startTime = formattedDay
@@ -70,7 +70,7 @@ export function useTorqueRaffle() {
                   acc.days.push({
                     day: dayForDisplay,
                     ticketAchieved: volume.volume >= dailyThreshold,
-                    dayInitial: dayForDisplay.format('ddd')[0],
+                    dayInitial: dayForDisplay.format('dd'),
                     tense: dayForComparison.utc().isSame(todayUtc, 'day')
                       ? 'PRESENT'
                       : dayForComparison.utc().isAfter(todayUtc, 'day')

@@ -60,7 +60,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
           <Heading as="h3" fontSize="md">
             {raffle?.name}
           </Heading>
-          <Badge variant="crooked">
+          <Badge variant="crooked" fontSize={'md'}>
             {displayNumber(raffle?.totalRewards)} {raffle?.rewardDenomination}
           </Badge>
         </HStack>
@@ -71,7 +71,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
           <Text fontSize="sm" w="full" color={colors.textPrimary}>
             Raffle ends in:
           </Text>
-          <TorqueCountdown date={raffle?.endTime} />
+          <TorqueCountdown date={raffle?.endTime} size="sm" />
         </HStack>
         <VStack w="full" spacing={4}>
           <HStack w="full" justifyContent={'space-between'} gap={2}>
@@ -96,13 +96,16 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
       >
         {raffle.userDetails ? (
           <VStack w="full" spacing={4} p={3} minH={24} borderRadius="md" bg={colors.backgroundDark} justify="center" align="center">
-            <HStack w="full" alignItems={'flex-end'} gap={2}>
-              <Text fontSize={'lg'} color={colors.textPrimary} marginBottom={0} lineHeight={1}>
-                {raffle.userDetails.currentDayTotal}
-              </Text>
-              <Text fontSize="xs" color={colors.textTertiary} marginBottom={0}>
-                / {raffle.todaysThreshold} {raffle.volumeDenomination}
-              </Text>
+            <HStack w="full" justifyContent={'space-between'} alignItems={'center'}>
+              <HStack w="full" alignItems={'flex-end'} gap={2}>
+                <Text fontSize={'lg'} color={colors.textPrimary} marginBottom={0} lineHeight={1}>
+                  {raffle.userDetails.currentDayTotal.toFixed(2)}
+                </Text>
+                <Text fontSize="xs" color={colors.textPrimary} marginBottom={0}>
+                  / {raffle.todaysThreshold} {raffle.volumeDenomination}
+                </Text>
+              </HStack>
+              <TorqueCountdown date={raffle.userDetails.todaysDate.utc().endOf('day')} size="sm" />
             </HStack>
             <Progress
               value={(raffle.userDetails.currentDayTotal / raffle.todaysThreshold) * 100}
@@ -112,9 +115,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
             <Text fontSize="xs" w="full" color={colors.textTertiary}>
               {raffle.todaysThreshold - raffle.userDetails.currentDayTotal <= 0
                 ? "You've got todays ticket!"
-                : `You need ${raffle.todaysThreshold - raffle.userDetails.currentDayTotal} ${
-                    raffle.volumeDenomination
-                  } to get a ticket by 12:00 AM UTC`}
+                : `You need ${raffle.todaysThreshold - raffle.userDetails.currentDayTotal} ${raffle.volumeDenomination} to get a ticket.`}
             </Text>
           </VStack>
         ) : (
@@ -169,7 +170,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
               <Text fontSize="sm" w="full" color={colors.textTertiary}>
                 {reward.winnersCount} winners
               </Text>
-              <Badge variant="crooked">
+              <Badge variant="crooked" fontSize={'xs'}>
                 {displayNumber(reward.reward)} {raffle.rewardDenomination}
               </Badge>
             </Flex>
@@ -178,7 +179,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
             <Text fontSize="sm" w="full" color={colors.textTertiary}>
               Total
             </Text>
-            <Badge variant="crooked">
+            <Badge variant="crooked" fontSize={'xs'}>
               {displayNumber(raffle.totalRewards)} {raffle.rewardDenomination}
             </Badge>
           </Flex>

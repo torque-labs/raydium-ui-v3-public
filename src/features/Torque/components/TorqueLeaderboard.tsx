@@ -60,7 +60,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
           <Heading as="h3" fontSize="md">
             {leaderboard?.name}
           </Heading>
-          <Badge variant="crooked">
+          <Badge variant="crooked" fontSize={'md'}>
             {displayNumber(leaderboard?.totalRewards)} {leaderboard?.rewardDenomination}
           </Badge>
         </HStack>
@@ -71,7 +71,7 @@ export default function TorqueLeaderboard({ leaderboard, loading, error, lastUpd
           <Text fontSize="sm" w="full" color={colors.textPrimary}>
             Snapshot in:
           </Text>
-          <TorqueCountdown date={leaderboard?.endTime} />
+          <TorqueCountdown date={leaderboard?.endTime} size="sm" />
         </HStack>
       </VStack>
 

@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
 import duration from 'dayjs/plugin/duration'
 import utc from 'dayjs/plugin/utc'
-import { color, Flex, HStack, Stack, Text, VStack } from '@chakra-ui/react'
+import { Flex, HStack, Stack, Text } from '@chakra-ui/react'
 import { colors } from '@/theme/cssVariables'
 
 dayjs.extend(utc)
@@ -10,6 +10,7 @@ dayjs.extend(duration)
 
 export interface TorqueCountdownProps {
   date?: Dayjs
+  size?: 'sm' | 'md'
 }
 
 type Countdown = {
@@ -19,7 +20,7 @@ type Countdown = {
   seconds?: number
 }
 
-export function TorqueCountdown({ date }: TorqueCountdownProps) {
+export function TorqueCountdown({ date, size = 'md' }: TorqueCountdownProps) {
   const [countdown, setCountdown] = useState<Countdown | undefined | string>()
   const intervalRef = useRef<number>()
 
@@ -93,19 +94,19 @@ export function TorqueCountdown({ date }: TorqueCountdownProps) {
   }
 
   return (
-    <HStack bg={colors.backgroundMedium} borderRadius={'md'}>
-      {countdown.days && <DateCell>{countdown.days}d</DateCell>}
-      {countdown.hours !== undefined && <DateCell>{countdown.hours}h</DateCell>}
-      {countdown.minutes !== undefined && <DateCell>{countdown.minutes}m</DateCell>}
-      {countdown.seconds !== undefined && <DateCell>{countdown.seconds}s</DateCell>}
+    <HStack bg={colors.backgroundMedium} borderRadius={'md'} px={1}>
+      {countdown.days && <DateCell size={size}>{countdown.days}d</DateCell>}
+      {countdown.hours !== undefined && <DateCell size={size}>{countdown.hours}h</DateCell>}
+      {countdown.minutes !== undefined && <DateCell size={size}>{countdown.minutes}m</DateCell>}
+      {countdown.seconds !== undefined && <DateCell size={size}>{countdown.seconds}s</DateCell>}
     </HStack>
   )
 }
 
-function DateCell({ children }: { children: React.ReactNode }) {
+function DateCell({ children, size = 'md' }: { children: React.ReactNode; size?: 'sm' | 'md' }) {
   return (
-    <Flex height={9} width={12} p={2} alignItems={'center'} justifyContent={'center'}>
-      <Text fontSize={'sm'}>{children}</Text>
+    <Flex height={size === 'sm' ? 8 : 9} width={size === 'sm' ? 8 : 12} alignItems={'center'} justifyContent={'center'} p={0}>
+      <Text fontSize={size === 'sm' ? 'xs' : 'sm'}>{children}</Text>
     </Flex>
   )
 }
