@@ -5,7 +5,7 @@ import { Check, XCircle } from 'react-feather'
 
 export function TorqueDayActivity({ day }: { day: TorqueUserRaffleDay }) {
   return (
-    <Flex direction={'column'} key={day.day.toISOString()} alignItems={'center'} justifyContent={'space-between'}>
+    <Flex direction={'column'} alignItems={'center'} justifyContent={'space-between'}>
       <Text fontSize="xs" color={colors.textTertiary}>
         {day.dayInitial}
       </Text>

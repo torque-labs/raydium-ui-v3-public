@@ -35,7 +35,9 @@ export function useTorqueRaffle() {
         let endTime = dayjs()
 
         Object.entries(raffleDetails.config.dailyVolumeRequired).forEach(([day, volume]) => {
-          const formattedDay = dayjs(day)
+          // The date is formatted as M-D-YY but in Safari it doesn't see it as a valid date so we need to convert it to a valid date in it's eyes
+          const strDate = `${day.slice(0, -3)}-2025`.replaceAll('-', '/')
+          const formattedDay = dayjs(strDate)
           days.push({ day: formattedDay, threshold: volume })
           if (formattedDay.isBefore(startTime)) {
             startTime = formattedDay
@@ -54,7 +56,10 @@ export function useTorqueRaffle() {
                 todaysDate: Dayjs
               }>(
                 (acc, volume) => {
-                  const day = dayjs(volume.day)
+                  // The date is formatted as M-D-YY but in Safari it doesn't see it as a valid date so we need to convert it to a valid date in it's eyes
+                  const strDate = `${volume.day.slice(0, -3)}-2025`.replaceAll('-', '/')
+
+                  const day = dayjs(strDate)
 
                   const dailyThreshold = raffleDetails.config.dailyVolumeRequired[volume.day]
 
@@ -72,7 +77,7 @@ export function useTorqueRaffle() {
                   acc.totalTickets += volume.volume >= dailyThreshold ? 1 : 0
                   if (day.isSame(todayUtc, 'day')) {
                     acc.currentDayTotal = volume.volume
-                    acc.todaysDate = dayjs.utc(volume.day)
+                    acc.todaysDate = dayjs.utc(strDate)
                   }
                   return acc
                 },
