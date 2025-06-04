@@ -159,3 +159,12 @@ export function displayNumber(number: number) {
 
   return `${formattedNumber.endsWith('.0') ? formattedNumber.slice(0, -2) : formattedNumber}k`
 }
+
+export function formatBadDateString(date: string, makeUtc = false): string {
+  const splitDate = date.split('-')
+  const baseDate = `2025-${splitDate[0].length === 1 ? `0${splitDate[0]}` : splitDate[0]}-${
+    splitDate[1].length === 1 ? `0${splitDate[1]}` : splitDate[1]
+  }`
+
+  return makeUtc ? baseDate + 'T00:00:00Z' : baseDate
+}

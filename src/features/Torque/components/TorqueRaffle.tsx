@@ -114,7 +114,7 @@ export default function TorqueRaffle({ raffle, loading, error, refetching }: Tor
                 ? "You've got todays ticket!"
                 : `You need ${raffle.todaysThreshold - raffle.userDetails.currentDayTotal} ${
                     raffle.volumeDenomination
-                  } to get a ticket by ${raffle.userDetails?.todaysDate.local().format('h:mm A')} UTC`}
+                  } to get a ticket by 12:00 AM UTC`}
             </Text>
           </VStack>
         ) : (

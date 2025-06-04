@@ -1,7 +1,7 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TorqueRaffle, TorqueUserRaffleDay } from '../types'
-import { fetchRaffleDetails } from '../utils'
+import { fetchRaffleDetails, formatBadDateString } from '../utils'
 import dayjs, { Dayjs } from 'dayjs'
 import weekday from 'dayjs/plugin/weekday'
 
@@ -28,7 +28,7 @@ export function useTorqueRaffle() {
         // Using empty wallet is none is there to then be able to populate the details in the UI
         const raffleDetails = await fetchRaffleDetails(wallet.publicKey?.toBase58() ?? undefined)
 
-        const todayUtc = dayjs().utc().startOf('day')
+        const todayUtc = dayjs().utc()
 
         const days: { day: Dayjs; threshold: number }[] = []
         let startTime = dayjs()
@@ -36,7 +36,7 @@ export function useTorqueRaffle() {
 
         Object.entries(raffleDetails.config.dailyVolumeRequired).forEach(([day, volume]) => {
           // The date is formatted as M-D-YY but in Safari it doesn't see it as a valid date so we need to convert it to a valid date in it's eyes
-          const strDate = `${day.slice(0, -3)}-2025`.replaceAll('-', '/')
+          const strDate = formatBadDateString(day)
           const formattedDay = dayjs(strDate)
           days.push({ day: formattedDay, threshold: volume })
           if (formattedDay.isBefore(startTime)) {
@@ -57,27 +57,31 @@ export function useTorqueRaffle() {
               }>(
                 (acc, volume) => {
                   // The date is formatted as M-D-YY but in Safari it doesn't see it as a valid date so we need to convert it to a valid date in it's eyes
-                  const strDate = `${volume.day.slice(0, -3)}-2025`.replaceAll('-', '/')
-
-                  const day = dayjs(strDate)
+                  const dayForDisplay = dayjs(formatBadDateString(volume.day))
+                  // We need to use the UTC date for comparison because the date is stored in UTC and we compare locally to UTC
+                  const dayForComparison = dayjs(formatBadDateString(volume.day, true))
 
                   const dailyThreshold = raffleDetails.config.dailyVolumeRequired[volume.day]
 
                   if (!dailyThreshold) {
-                    throw new Error(`Threshold not found for day: ${day.format('M-D-YY')}`)
+                    throw new Error(`Threshold not found for day: ${dayForDisplay.format('DD-MM-YYYY')}`)
                   }
 
                   acc.days.push({
-                    day,
+                    day: dayForDisplay,
                     ticketAchieved: volume.volume >= dailyThreshold,
-                    dayInitial: day.format('ddd')[0],
-                    tense: day.isSame(todayUtc, 'day') ? 'PRESENT' : day.isAfter(todayUtc) ? 'FUTURE' : 'PAST',
+                    dayInitial: dayForDisplay.format('ddd')[0],
+                    tense: dayForComparison.utc().isSame(todayUtc, 'day')
+                      ? 'PRESENT'
+                      : dayForComparison.utc().isAfter(todayUtc, 'day')
+                      ? 'FUTURE'
+                      : 'PAST',
                     threshold: dailyThreshold
                   })
                   acc.totalTickets += volume.volume >= dailyThreshold ? 1 : 0
-                  if (day.isSame(todayUtc, 'day')) {
+                  if (dayForComparison.utc().isSame(todayUtc, 'day')) {
                     acc.currentDayTotal = volume.volume
-                    acc.todaysDate = dayjs.utc(strDate)
+                    acc.todaysDate = dayjs.utc(formatBadDateString(volume.day, true))
                   }
                   return acc
                 },
