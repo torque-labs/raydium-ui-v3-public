@@ -1,7 +1,7 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TorqueLeaderboard, TorqueLeaderboardOffer } from '../types'
-import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails, displayNumber } from '../utils'
+import { fetchTorqueLeaderboard, fetchLeaderboardOfferDetails } from '../utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import dayjs, { Dayjs } from 'dayjs'
 
