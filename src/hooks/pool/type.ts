@@ -36,6 +36,7 @@ type FormattedExtendInfo = {
   recommendDecimal: (val: string | number | Decimal) => number
   formattedRewardInfos: FormattedPoolReward[]
   isRewardEnded: boolean
+  launchMigratePool: boolean
 }
 
 export type FormattedPoolInfoItem = ApiV3PoolInfoItem & FormattedExtendInfo

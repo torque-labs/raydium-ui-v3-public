@@ -45,6 +45,7 @@ import { aprColors, PoolListItemAprLine } from './PoolListItemAprLine'
 import { PoolListItemAprPie } from './PoolListItemAprPie'
 import { PoolListItemRewardStack } from './PoolListItemRewardStack'
 import LockPercentCircle from '@/components/LockPercentCircle'
+import RaydiumLaunch from '@/icons/RaydiumLaunch'
 
 export default function PoolListItem({
   styleType = 'list',
@@ -206,7 +207,6 @@ export default function PoolListItem({
                     <Tag size="sm" variant="rounded">
                       {formatToRawLocaleStr(toPercentString(pool.feeRate * 100))}
                     </Tag>
-
                     {pool.isOpenBook && (
                       <Tooltip label="This pool shares liquidity to the OpenBook order-book">
                         <Flex alignItems="center">
@@ -216,6 +216,7 @@ export default function PoolListItem({
                         </Flex>
                       </Tooltip>
                     )}
+                    {pool.launchMigratePool ? <RaydiumLaunch /> : null}
                   </HStack>
                 </GridItem>
               </Grid>

@@ -28,7 +28,7 @@ interface Props {
 
 export type { LaunchpadPoolInfo, LaunchpadConfigInfo }
 
-const fetcher = ([connection, poolId]: [Connection, string]) => connection.getAccountInfo(ToPublicKey(poolId))
+const fetcher = ([connection, poolId]: [Connection, string]) => connection.getAccountInfo(ToPublicKey(poolId), { commitment: 'processed' })
 
 export default function usePoolRpcInfo({ poolId, mintInfo, refreshInterval = 10 * 1000, notRefresh }: Props) {
   const [connection, programId] = useAppStore((s) => [s.connection, s.programIdConfig.LAUNCHPAD_PROGRAM], shallow)
@@ -37,20 +37,33 @@ export default function usePoolRpcInfo({ poolId, mintInfo, refreshInterval = 10 
   const [configInfo, setConfigInfo] = useState<(LaunchpadConfigInfo & { configId: PublicKey }) | undefined>()
   const shouldFetch = !!poolId && !!connection
 
+  const interval = onChain ? refreshInterval : 3 * 1000
+
   const { data, isLoading, error, ...rest } = useSWR(shouldFetch ? [connection, poolId] : null, fetcher, {
     revalidateIfStale: !notRefresh,
     revalidateOnFocus: !notRefresh,
     revalidateOnReconnect: !notRefresh,
-    dedupingInterval: notRefresh ? 0 : refreshInterval,
-    focusThrottleInterval: notRefresh ? 0 : refreshInterval,
-    refreshInterval: notRefresh ? 0 : refreshInterval,
+    dedupingInterval: notRefresh ? 0 : interval,
+    focusThrottleInterval: notRefresh ? 0 : interval,
+    refreshInterval: notRefresh ? 0 : interval,
     keepPreviousData: true
   })
 
-  const poolInfo: (LaunchpadPoolInfo & { price: Decimal }) | undefined = useMemo(() => {
-    if (!data) {
+  const isFetchDone = shouldFetch && !isLoading
+
+  const poolInfo: (LaunchpadPoolInfo & { price: Decimal; fake?: boolean }) | undefined = useMemo(() => {
+    if (isFetchDone && !data) {
       setOnChain(false)
       if (mintInfo) {
+        const supply = new BN(mintInfo.supply * 10 ** Number(mintInfo.decimals))
+        const curve = Curve.getCurve(mintInfo.configInfo.curveType)
+        const initParam = curve.getInitParam({
+          supply,
+          totalFundRaising: new BN(mintInfo.totalFundRaisingB),
+          totalSell: new BN(mintInfo.totalSellA),
+          totalLockedAmount: new BN(mintInfo.totalLockedAmount),
+          migrateFee: new BN(mintInfo.configInfo.migrateFee)
+        })
         // mint B check
         const poolId = getPdaLaunchpadPoolId(programId, ToPublicKey(mintInfo.mint), NATIVE_MINT).publicKey
         const poolInfo = {
@@ -58,10 +71,10 @@ export default function usePoolRpcInfo({ poolId, mintInfo, refreshInterval = 10 
           status: 0,
           epoch: new BN(859),
           decimals: parseFloat(mintInfo.decimals),
-          supply: LaunchpadPoolInitParam.supply,
-          totalSellA: LaunchpadPoolInitParam.totalSellA,
-          virtualA: LaunchpadPoolInitParam.virtualA,
-          virtualB: LaunchpadPoolInitParam.virtualB,
+          supply,
+          totalSellA: new BN(mintInfo.totalSellA),
+          virtualA: initParam.a,
+          virtualB: initParam.b,
           realA: LaunchpadPoolInitParam.realA,
           realB: LaunchpadPoolInitParam.realB,
           tradeFee: new BN(0),
@@ -108,18 +121,21 @@ export default function usePoolRpcInfo({ poolId, mintInfo, refreshInterval = 10 
       setConfigInfo(undefined)
       return undefined
     }
-    const info = LaunchpadPool.decode(data.data)
-    setOnChain(true)
-    return {
-      ...info,
-      price: Curve.getPrice({
-        poolInfo: info,
-        curveType: mintInfo?.configInfo.curveType ?? 0,
-        decimalA: info.mintDecimalsA,
-        decimalB: info.mintDecimalsB
-      })
+
+    if (data) {
+      const info = LaunchpadPool.decode(data.data)
+      setOnChain(true)
+      return {
+        ...info,
+        price: Curve.getPrice({
+          poolInfo: info,
+          curveType: mintInfo?.configInfo.curveType ?? 0,
+          decimalA: info.mintDecimalsA,
+          decimalB: info.mintDecimalsB
+        })
+      }
     }
-  }, [data, mintInfo?.mint, programId])
+  }, [data, mintInfo?.mint, programId, isFetchDone])
 
   const configId = poolInfo ? poolInfo.configId : mintInfo ? mintInfo?.configId : undefined
 

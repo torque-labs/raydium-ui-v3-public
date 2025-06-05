@@ -24,8 +24,8 @@ export default function TorqueButton() {
           isOpen={isOpen}
           onClose={onClose}
           handleClaimOffer={handleClaimOffer}
-          loading={loading}
-          error={error}
+          campaignsLoading={loading}
+          campaignsError={error}
           campaigns={campaigns}
         />
       )}

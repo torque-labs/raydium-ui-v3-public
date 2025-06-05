@@ -1,10 +1,12 @@
 import { Box } from '@chakra-ui/react'
 import { TooltipProps } from 'recharts'
-import { NameType, ValueType } from 'recharts/src/component/DefaultTooltipContent'
 
 import { toUTC } from '@/utils/date'
 import { formatCurrency } from '@/utils/numberish/formatter'
 import { colors } from '@/theme/cssVariables'
+
+type ValueType = number | string | Array<number | string>
+type NameType = number | string
 
 export default function ChartTooltip({ active, payload, label, category }: TooltipProps<ValueType, NameType> & { category?: string }) {
   const unit = 'USD'

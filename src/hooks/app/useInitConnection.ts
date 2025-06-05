@@ -67,12 +67,12 @@ function useInitConnection(props: SSRData) {
               allSignedTx = await _signAllTransactions(transactions)
             }
             const allBase64Tx = allSignedTx.map(txToBase64)
-            // const res = await validateTxData({
-            //   preData: unsignedTxData,
-            //   data: allBase64Tx,
-            //   userSignTime: Date.now() - time
-            // })
-            // if (!res.success) throw new Error(res.msg)
+            const res = await validateTxData({
+              preData: unsignedTxData,
+              data: allBase64Tx,
+              userSignTime: Date.now() - time
+            })
+            if (!res.success) throw new Error(res.msg)
 
             return allSignedTx
           }
@@ -179,7 +179,6 @@ function useInitConnection(props: SSRData) {
   useEffect(() => cancelAllRetry, [connection.rpcEndpoint])
   useEffect(() => {
     if (!wallet) return
-    if (wallet.adapter.name === 'SafePal') useAppStore.setState({ txVersion: TxVersion.LEGACY })
     return () => useAppStore.setState({ txVersion: TxVersion.V0 })
   }, [wallet?.adapter.name])
 

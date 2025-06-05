@@ -6,7 +6,7 @@ import useResponsive from '@/hooks/useResponsive'
 
 export default function PlatformButton({ defaultValue, onChange }: { defaultValue?: string; onChange?: (val?: string) => void }) {
   const { isDesktopSmall, isDesktopMedium, isDesktopLarge } = useResponsive()
-  const [selected, setSelected] = useState('PlatformWhiteList')
+  const [selected, setSelected] = useState(defaultValue || 'PlatformWhiteList')
   const { data } = usePlatformList({})
 
   const selectedPlatform = useMemo(() => data.find((p) => p.pubKey === selected), [data, selected])
@@ -15,14 +15,19 @@ export default function PlatformButton({ defaultValue, onChange }: { defaultValu
     onChange?.(selected)
   }, [selected, onChange])
 
+  useEffect(() => {
+    if (!data.length || !defaultValue) return
+    if (!data.some((p) => p.pubKey === defaultValue) && defaultValue !== 'PlatformWhiteList') setSelected('PlatformWhiteList')
+  }, [defaultValue, data])
+
   return (
     <Menu>
       <MenuButton
         ml="-1"
         display="flex"
-        height="38px"
-        minWidth="fit-content"
-        minHeight="38px"
+        minWidth={['40px', 'fit-content']}
+        height={['40px', '38px']}
+        minHeight={['40px', '38px']}
         justifyContent="center"
         alignItems="center"
         gap="1"

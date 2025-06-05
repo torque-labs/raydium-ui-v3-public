@@ -33,6 +33,7 @@ export const CopyButton = ({ value, buttonType = 'default', children, Icon, onCo
       gap="0.5ch"
       minWidth="max-content"
       onClick={(e) => {
+        e.preventDefault()
         e.stopPropagation()
         copy()
       }}
@@ -53,20 +54,22 @@ export const CopyButton = ({ value, buttonType = 'default', children, Icon, onCo
       {copied ? <CircleCheck color={colors.textLaunchpadLink} /> : <CopyLaunchpadIcon color={colors.textLaunchpadLink} />}
     </Box>
   ) : buttonType === 'icon' ? (
-    Icon ? (
+    copied ? (
+      <CircleCheck color={colors.textLaunchpadLink} />
+    ) : Icon ? (
       <Icon
         cursor="pointer"
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           copy()
         }}
       />
-    ) : copied ? (
-      <CircleCheck color={colors.textLaunchpadLink} />
     ) : (
       <CopyLaunchpadIcon
         cursor="pointer"
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           copy()
         }}
@@ -77,6 +80,7 @@ export const CopyButton = ({ value, buttonType = 'default', children, Icon, onCo
     <Button
       {...buttonProps}
       onClick={(e) => {
+        e.preventDefault()
         e.stopPropagation()
         copy()
       }}

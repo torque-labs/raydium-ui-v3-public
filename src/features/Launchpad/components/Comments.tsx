@@ -112,14 +112,16 @@ const CommentItem = ({ comment, isDeveloper, isFirst }: { comment: Comment; isDe
         <Grid templateColumns="auto 1fr" gap={4}>
           {comment.imgUrl ? <Image src={getImgProxyUrl(comment.imgUrl, 100)} fallbackSrc={comment.imgUrl} boxSize="100px" /> : null}
           <Flex direction="column" gap={4}>
-            <Text lineHeight="20px">{htmlDecode(comment.text)}</Text>
+            <Text color={colors.lightPurple} fontSize="sm">
+              {htmlDecode(comment.text)}
+            </Text>
             {/* <Text fontSize="sm" color={colors.lightPurple}>
               {comment.description}
             </Text> */}
           </Flex>
         </Grid>
       ) : (
-        <Text lineHeight="20px">
+        <Text overflowWrap="break-word" wordBreak="break-word">
           {htmlDecode(comment.text)}
           {comment.imgUrl ? (
             <Image src={getImgProxyUrl(comment.imgUrl, 100)} fallbackSrc={comment.imgUrl} mt="10px" boxSize="100px" />

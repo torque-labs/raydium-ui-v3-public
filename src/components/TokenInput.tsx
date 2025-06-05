@@ -405,6 +405,7 @@ function TokenInput(props: TokenInputProps) {
             value={typeof value === 'undefined' ? '' : value}
             thousandSeparator={thousandSeparator}
             decimalSeparator={detectedSeparator}
+            allowedDecimalSeparators={['.', ',']}
             allowNegative={false}
             valueIsNumericString
             placeholder={''}

@@ -1,5 +1,18 @@
-import { Box, Flex, Grid, Spinner, Text } from '@chakra-ui/react'
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Scatter, ComposedChart } from 'recharts'
+import { useState, useRef, useMemo } from 'react'
+import { Box, Flex, Grid, Spinner, Text, Tooltip as ChakraTooltip } from '@chakra-ui/react'
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ReferenceLine,
+  ReferenceDot,
+  Scatter,
+  ComposedChart
+} from 'recharts'
 import { CategoricalChartProps } from 'recharts/types/chart/generateCategoricalChart'
 import { colors } from '@/theme/cssVariables/colors'
 import { formatCurrency } from '@/utils/numberish/formatter'
@@ -27,17 +40,42 @@ export const CurveLineChart = ({
   height?: string
   isLoading?: boolean
 }) => {
+  const currentPoints = data.filter((d) => !!d.current)
+  const currentPoint = currentPoints.length > 0 ? currentPoints[0] : null
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const containerRef = useRef(null)
+  const isHovering = activeIndex !== -1
+
   return (
-    <Box width="100%" height={height} overflow="hidden">
-      {!isLoading ? (
+    <Box
+      width="100%"
+      height={height}
+      overflow="hidden"
+      position="relative"
+      zIndex={1}
+      sx={{
+        '--chakra-zIndices-tooltip': '2'
+      }}
+    >
+      {!isLoading && data.length > 0 ? (
         <Box background={colors.backgroundDark}>
-          <ResponsiveContainer minWidth="330px" minHeight="175px">
-            <ComposedChart data={data} margin={margin} style={{ padding: 0 }}>
+          <ResponsiveContainer ref={containerRef} minWidth="330px" minHeight="175px">
+            <ComposedChart
+              data={data}
+              margin={margin}
+              style={{ padding: 0 }}
+              onMouseMove={(e) => {
+                if (e.activeTooltipIndex !== undefined) {
+                  setActiveIndex(e.activeTooltipIndex)
+                }
+              }}
+              onMouseLeave={() => setActiveIndex(-1)}
+            >
               <CartesianGrid stroke={colors.lightPurple} opacity={0.1} />
               <YAxis yAxisId="left" dataKey={yKey} tickMargin={8} domain={['auto', 'auto']} stroke="#BFD2FF80" tick={false} />
               <ReferenceLine y={0} yAxisId="left" strokeWidth={2} stroke={colors.lightPurple} opacity={0.2} />
               <XAxis type="number" dataKey={xKey} domain={['dataMin', 'dataMax']} stroke="#BFD2FF80" tickMargin={8} tick={false} />
-              <Scatter yAxisId="left" name="red" fill="red" data={data.filter((d) => !!d.current)} shape={<CustomLabel />} />
+              {/* <Scatter yAxisId="left" xAxisId="0" dataKey={yKey} name="red" fill="red" data={currentPoints} shape={<CustomLabel />} /> */}
               <Line
                 yAxisId="left"
                 data={data}
@@ -53,8 +91,22 @@ export const CurveLineChart = ({
                   strokeWidth: 0
                 }}
                 type="monotone"
-                // label={<CustomLabel current={current} />}
               />
+              {currentPoint && (!isHovering || data[activeIndex]?.x !== currentPoint.x || data[activeIndex]?.y !== currentPoint.y) && (
+                <ReferenceDot
+                  x={currentPoint.x}
+                  y={currentPoint.y}
+                  yAxisId="left"
+                  shape={
+                    <CustomLabel
+                      payload={currentPoint}
+                      isHovering={isHovering}
+                      total={data[data.length - 1].x}
+                      containerRef={containerRef}
+                    />
+                  }
+                />
+              )}
               <Tooltip
                 content={(props) => <CustomTooltip {...props} current={current} total={data[data.length - 1].x} />}
                 cursor={{
@@ -62,6 +114,7 @@ export const CurveLineChart = ({
                   opacity: 0.5,
                   strokeDasharray: '4'
                 }}
+                isAnimationActive={false}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -99,7 +152,7 @@ const CustomTooltip = ({ active, payload, current, total }: { active?: boolean; 
     return (
       <Flex direction="column" px={3} py={2} background={colors.tooltipBg} fontSize="xs" color={colors.textSecondary}>
         {current === data.y ? <Text>Current</Text> : null}
-        <Text>Price: {formatCurrency(data.y, { maximumDecimalTrailingZeroes: 4 })} SOL</Text>
+        <Text>Mkt Cap: {formatCurrency(data.y, { symbol: '$', abbreviated: true, decimalPlaces: 2 })} </Text>
         <Text>Tokens Remaining: {formatCurrency(total ? total - data.x : data.x, { decimalPlaces: 2, abbreviated: true })}</Text>
       </Flex>
     )
@@ -107,11 +160,58 @@ const CustomTooltip = ({ active, payload, current, total }: { active?: boolean; 
   return null
 }
 
-const CustomLabel = ({ x, y }: any) => {
-  return (
+const CustomLabel = ({ cx, cy, payload, isHovering, total, containerRef }: any) => {
+  const marker = (
     <g>
-      <circle cx={x + 3} cy={y + 5} r="6" fill="transparent" stroke="#22D1F8" strokeWidth="1" />
-      <circle cx={x + 3} cy={y + 5} r="3" fill="#FFCC33" />
+      <circle cx={cx} cy={cy} r="6" fill="transparent" stroke="#22D1F8" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r="3" fill="#FFCC33" />
     </g>
   )
+
+  const tooltipContent = useMemo(
+    () => (
+      <Flex direction="column" background={colors.tooltipBg} fontSize="xs" color={colors.textSecondary}>
+        <Text>Current</Text>
+        <Text>Mkt Cap: {formatCurrency(payload.y, { symbol: '$', abbreviated: true, decimalPlaces: 2 })} </Text>
+        <Text>Tokens Remaining: {formatCurrency(total ? total - payload.x : payload.x, { decimalPlaces: 2, abbreviated: true })}</Text>
+      </Flex>
+    ),
+    [payload.x, payload.y, total]
+  )
+
+  if (payload.current) {
+    if (!isHovering) {
+      return (
+        <ChakraTooltip
+          isOpen={true}
+          placement="auto"
+          label={tooltipContent}
+          portalProps={{ containerRef }}
+          modifiers={[
+            {
+              name: 'preventOverflow',
+              options: {
+                boundary: containerRef.current,
+                altAxis: true,
+                tether: false,
+                rootBoundary: 'viewport',
+                padding: 8
+              }
+            },
+            {
+              name: 'flip',
+              options: {
+                boundary: containerRef.current,
+                fallbackPlacements: ['top', 'right', 'left']
+              }
+            }
+          ]}
+        >
+          {marker}
+        </ChakraTooltip>
+      )
+    }
+    return marker
+  }
+  return <circle cx={0} cy={0} r="0" fill="transparent" />
 }

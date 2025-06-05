@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Flex, Button, Text, useColorMode } from '@chakra-ui/react'
+import { Box, Flex, Button, Text, useColorMode, CircularProgress } from '@chakra-ui/react'
 import { NumericFormat } from 'react-number-format'
 import { ApiV3Token } from '@raydium-io/raydium-sdk-v2'
 import { colors } from '@/theme/cssVariables/colors'
@@ -41,7 +41,7 @@ export default function TradeBox({
   isMigrating,
   isLanded
 }: {
-  poolInfo?: LaunchpadPoolInfo
+  poolInfo?: LaunchpadPoolInfo & { fake?: boolean }
   mintInfo?: MintInfo
   mintBInfo?: ApiV3Token
   configInfo?: LaunchpadConfigInfo
@@ -222,11 +222,13 @@ export default function TradeBox({
             mintBInfo: mintInfo.mintB,
             buyAmount: new BN(new Decimal(amount.amountIn || 0).mul(10 ** mintBDecimal).toFixed(0)),
             slippage: new BN((slippage * 10000).toFixed(0)),
-            migrateType: 'amm',
+            migrateType: mintInfo.migrateType,
             shareFeeReceiver: wallet,
             configInfo: ToLaunchPadConfig(mintInfo.configInfo),
             configId: mintInfo.configId,
             platformFeeRate: new BN(mintInfo.platformInfo.feeRate),
+            totalSellA: new BN(mintInfo.totalSellA),
+            totalFundRaisingB: new BN(mintInfo.totalFundRaisingB),
 
             onConfirmed,
             onFinally: offLoading
@@ -264,7 +266,7 @@ export default function TradeBox({
         onFinally: offLoading
       })
     } catch (e: any) {
-      toastSubject.next({ status: 'error', title: 'Buy Token Error', description: e.message })
+      toastSubject.next({ status: 'error', title: `${isBuy ? 'Buy' : 'Sell'} Token Error`, description: e.message })
     }
     offLoading()
   }
@@ -561,6 +563,13 @@ export default function TradeBox({
           </Text>
         </Text>
       </Box>
+      <Text variant="error" my="-2" mb="2">
+        {isMintCreated && poolInfo?.fake ? (
+          <Flex gap="1" alignItems="center">
+            Loading pool info <CircularProgress isIndeterminate color={colors.semanticError} size="14px" />
+          </Flex>
+        ) : null}
+      </Text>
       <ConnectedButton
         width="100%"
         background={isBuy ? colors.positive : colors.negative}
@@ -572,6 +581,7 @@ export default function TradeBox({
         }}
         isLoading={isLoading || swapLoading || swapValidating || isSending}
         isDisabled={
+          (isMintCreated && poolInfo?.fake) ||
           isMigrating ||
           new Decimal(amount.amountOut || 0).lte(0) ||
           new Decimal(amount.amountIn || 0).gt(isBuy ? mintBalance : mintABalance) ||

@@ -17,7 +17,8 @@ import {
   Link,
   NumberInput,
   NumberInputField,
-  SystemStyleObject
+  SystemStyleObject,
+  useColorMode
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import ChevronLeftIcon from '@/icons/misc/ChevronLeftIcon'
@@ -34,9 +35,8 @@ import { useDialogsStore } from '@/store'
 import { DialogTypes } from '@/constants/dialogs'
 import { Formik } from 'formik'
 import * as yup from 'yup'
-import { HelpCircle } from 'react-feather'
+import { HelpCircle, Info, X } from 'react-feather'
 import useWalletSign from '@/hooks/launchpad/useWalletSign'
-import { Info } from 'react-feather'
 import NextLink from 'next/link'
 import { toastSubject } from '@/hooks/toast/useGlobalToast'
 import { useReferrerQuery } from './utils'
@@ -57,6 +57,8 @@ import { BN } from 'bn.js'
 import CompleteInfoModel from './components/CompleteInfoModel'
 import { useDisclosure } from '@/hooks/useDelayDisclosure'
 import useResponsive from '@/hooks/useResponsive'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { LocalStorageKey } from '@/constants/localStorage'
 
 const supplyList = ['100000000', '1000000000', '10000000000']
 interface CreateMintFormValue {
@@ -106,6 +108,12 @@ export default function TokenCreate() {
   const { t } = useTranslation()
   const [value, setValue] = useState(Tab.JustSendIt)
   const referrerQuery = useReferrerQuery('?')
+  const { colorMode } = useColorMode()
+  const isLight = colorMode === 'light'
+  const [isLaunchTokenBannerShown, setIsLaunchTokenBannerShown] = useLocalStorage({
+    key: LocalStorageKey.IsLaunchTokenBannerShown,
+    defaultValue: true
+  })
 
   const panelItems = useMemo(() => {
     return [
@@ -123,7 +131,7 @@ export default function TokenCreate() {
         content: <LaunchLabForm />,
         label: (
           <Flex alignItems="center" gap={1}>
-            <Text>LaunchLab</Text>
+            <Text>Advanced</Text>
             <LabIcon selected={value === Tab.JustSendIt} />
           </Flex>
         ),
@@ -145,6 +153,28 @@ export default function TokenCreate() {
       mt={2}
     >
       <GridItem area="back">
+        {isLaunchTokenBannerShown && (
+          <Box marginX={['-20px', 0, `min((100vw - 1600px) / -2, -7%)`]} mb={3}>
+            <Flex borderRadius="8px" background="#8C6EEF33" width="100%" px={3} py={2} justifyContent="space-between">
+              <Box></Box>
+              <Flex alignItems="center" lineHeight="18px">
+                💰
+                <Text
+                  fontSize="sm"
+                  bgGradient={
+                    isLight
+                      ? 'linear-gradient(245.22deg, #DA2EEF 7.97%, #2B6AFF 49.17%, #39D0D8 92.1%)'
+                      : 'linear-gradient(245.22deg, #FF2FC8 7.97%, #FFB12B 49.17%, #D3D839 92.1%)'
+                  }
+                  bgClip="text"
+                >
+                  Launch tokens, earn rewards! Check ‘Rewards’ tab and X account for updates!
+                </Text>
+              </Flex>
+              <X width="22px" height="22px" color="#4F53F3" cursor="pointer" onClick={() => setIsLaunchTokenBannerShown(false)} />
+            </Flex>
+          </Box>
+        )}
         <Flex alignItems="center" gap={1} opacity={0.5}>
           <Link as={NextLink} href={`/launchpad${referrerQuery}`} display="contents" shallow color={colors.lightPurple}>
             <ChevronLeftIcon />
@@ -195,14 +225,17 @@ const JustSendIt = () => {
 
   const [isFocused] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isPostMigrationFeeShare, setIsPostMigrationFeeShare] = useState(true)
+  const [migrateType, setMigrateType] = useState<'amm' | 'cpmm'>('cpmm')
 
-  usePlatformInfo({ platformId: LaunchpadPoolInitParam.platformId })
+  const platformInfo = usePlatformInfo({ platformId: LaunchpadPoolInitParam.platformId })
 
   const schema = useMemo(
     () =>
       yup.object({
         name: yup.string().required('Enter token name'),
-        description: yup.string().required('Enter description').max(2000),
+        description: yup.string().max(2000, 'max 2000 characters'),
         ticker: yup.string().required('Enter ticker'),
         file: yup.mixed().required('Upload an image'),
         telegram: yup.string().test('is-website-valid', 'invalid telegram url', function (val) {
@@ -238,7 +271,8 @@ const JustSendIt = () => {
           DialogTypes.InitialBuy({
             ...values,
             configInfo,
-            file: values.file!
+            file: values.file!,
+            migrateType
           })
         )
       }
@@ -248,7 +282,8 @@ const JustSendIt = () => {
       DialogTypes.InitialBuy({
         ...values,
         configInfo,
-        file: values.file!
+        file: values.file!,
+        migrateType
       })
     )
   }
@@ -396,29 +431,79 @@ const JustSendIt = () => {
                 <ImageUploader
                   onImageUpload={(file) => {
                     setFieldValue('file', file)
+                    setUploadError(null)
+                  }}
+                  onError={(error) => {
+                    if (error) {
+                      setUploadError(error)
+                    } else {
+                      setUploadError(null)
+                    }
                   }}
                   acceptedFileTypes={['image/jpeg', 'image/png', 'image/gif']}
                   maxFileSizeInMB={5}
                 />
-                {submitCount > 0 && errors.file ? (
+                {uploadError ? (
+                  <Text mt="1" variant="error">
+                    {uploadError}
+                  </Text>
+                ) : submitCount > 0 && errors.file ? (
                   <Text mt="1" variant="error">
                     {errors.file}
                   </Text>
                 ) : null}
               </Box>
-              <Box>
-                <Button
-                  variant="ghost"
-                  _hover={{
-                    background: 'transparent'
+              <Flex
+                justifyContent="space-between"
+                p={2}
+                alignItems="center"
+                borderRadius="8px"
+                background="#ABC4FF12"
+                border="1px solid #BFD2FF1A"
+              >
+                <Flex alignItems="center" gap={1} lineHeight="20px">
+                  <Text color={colors.lightPurple} fontWeight="medium">
+                    Creator LP fee share
+                  </Text>
+                  <Tooltip
+                    hasArrow
+                    placement="top"
+                    label={`After the token graduates, token creators can claim ${
+                      platformInfo ? (Number(platformInfo.creatorScale) / 1000000) * 100 : 10
+                    }% of LP fees from AMM pool trades.`}
+                  >
+                    <HelpCircle size={12} color={colors.lightPurple} />
+                  </Tooltip>
+                </Flex>
+                <Switch
+                  isChecked={isPostMigrationFeeShare}
+                  onChange={() => {
+                    setIsPostMigrationFeeShare(!isPostMigrationFeeShare)
+                    setMigrateType(isPostMigrationFeeShare ? 'amm' : 'cpmm')
                   }}
-                  px={0}
-                  rightIcon={isExpanded ? <ChevronUpIcon width={16} height={16} /> : <ChevronDownIcon width={16} height={16} />}
-                  onClick={toggleExpand}
-                >
-                  {t('launchpad.socials_more_options')}
-                </Button>
-              </Box>
+                  _checked={{
+                    '.chakra-switch__track': {
+                      bg: '#8C6EEF'
+                    },
+                    '.chakra-switch__thumb': {
+                      bg: colors.lightPurple
+                    }
+                  }}
+                />
+              </Flex>
+              <Button
+                variant="ghost"
+                _hover={{
+                  background: 'transparent'
+                }}
+                px={0}
+                justifyContent="flex-start"
+                height="18px"
+                rightIcon={isExpanded ? <ChevronUpIcon width={16} height={16} /> : <ChevronDownIcon width={16} height={16} />}
+                onClick={toggleExpand}
+              >
+                {t('launchpad.socials_more_options')}
+              </Button>
               {isExpanded && (
                 <Flex direction="column" gap={4}>
                   <Box>
@@ -539,13 +624,14 @@ const LaunchLabForm = () => {
   const [configInfo, setConfigInfo] = useState<ConfigApiData | undefined>()
   const [vestingUnit, setVestingUnit] = useState(MONTH_SECONDS)
   const [cliffUnit, setCliffUnit] = useState(MONTH_SECONDS)
-  const [migrateType, setMigrateType] = useState<'amm' | 'cpmm'>('amm')
+  const [migrateType, setMigrateType] = useState<'amm' | 'cpmm'>('cpmm')
   const [lockError, setLockError] = useState<string | undefined>(undefined)
   const [supplyError, setSupplyError] = useState<string | undefined>(undefined)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const [currentStep, setCurrentStep] = useState<CreateTokenSteps>(CreateTokenSteps.Basic)
   const [isCliffEnabled, setIsCliffEnabled] = useState(false)
-  const [isPostMigrationFeeShare, setIsPostMigrationFeeShare] = useState(false)
+  const [isPostMigrationFeeShare, setIsPostMigrationFeeShare] = useState(true)
   const [poolData, setPoolData] = useState<CreateMintAdvancedFormValue>(initPoolData)
   const [data, setData] = useState<any[]>([])
   const decimalA = 6
@@ -559,7 +645,7 @@ const LaunchLabForm = () => {
   const schema = useMemo(() => {
     return yup.object({
       name: yup.string().required('Enter token name'),
-      description: yup.string().required('Enter description').max(2000),
+      description: yup.string().max(2000, 'max 2000 characters'),
       ticker: yup.string().required('Enter ticker'),
       file: yup.mixed().required('Upload an image'),
       telegram: yup.string().test('is-website-valid', 'invalid telegram url', function (val) {
@@ -825,7 +911,7 @@ const LaunchLabForm = () => {
                     <Text fontWeight="medium" fontSize="lg">
                       Basic info
                     </Text>
-                    {!values.name || !values.ticker || !values.file || !values.description ? (
+                    {!values.name || !values.ticker || !values.file ? (
                       <Text fontSize="md" variant="error">
                         Please complete basic token info
                       </Text>
@@ -976,11 +1062,23 @@ const LaunchLabForm = () => {
                     <ImageUploader
                       onImageUpload={(file) => {
                         setFieldValue('file', file)
+                        setUploadError(null)
+                      }}
+                      onError={(error) => {
+                        if (error) {
+                          setUploadError(error)
+                        } else {
+                          setUploadError(null)
+                        }
                       }}
                       acceptedFileTypes={['image/jpeg', 'image/png', 'image/gif']}
                       maxFileSizeInMB={5}
                     />
-                    {(submitCount > 0 || touched['file']) && errors.file ? (
+                    {uploadError ? (
+                      <Text mt="1" variant="error">
+                        {uploadError}
+                      </Text>
+                    ) : (submitCount > 0 || touched['file']) && errors.file ? (
                       <Text mt="1" variant="error">
                         {errors.file}
                       </Text>
@@ -1154,8 +1252,8 @@ const LaunchLabForm = () => {
                       setFieldValue('vestingDuration', '')
                       setFieldValue('cliff', '')
 
-                      setIsPostMigrationFeeShare(false)
-                      setMigrateType('amm')
+                      setIsPostMigrationFeeShare(true)
+                      setMigrateType('cpmm')
 
                       setPoolData(clearedValues)
 
@@ -1508,12 +1606,14 @@ const LaunchLabForm = () => {
                   >
                     <Flex alignItems="center" gap={1} lineHeight="20px">
                       <Text color={colors.lightPurple} fontWeight="medium">
-                        Post migration fee share
+                        Creator LP fee share
                       </Text>
                       <Tooltip
                         hasArrow
                         placement="top"
-                        label={'After the token graduates, token creators can claim 10% of LP fees from AMM pool trades.'}
+                        label={`After the token graduates, token creators can claim ${
+                          platformInfo ? (Number(platformInfo.creatorScale) / 1000000) * 100 : 10
+                        }% of LP fees from AMM pool trades.`}
                       >
                         <HelpCircle size={12} color={colors.lightPurple} />
                       </Tooltip>

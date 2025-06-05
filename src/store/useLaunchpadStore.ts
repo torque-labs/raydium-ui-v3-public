@@ -345,8 +345,8 @@ export const useLaunchpadStore = createStore<LaunchpadState>((set, get) => ({
       platformFeeRate,
 
       supply,
-      totalSellA,
-      totalFundRaisingB,
+      totalSellA: totalSellA ? new BN(totalSellA) : undefined,
+      totalFundRaisingB: totalFundRaisingB ? new BN(totalFundRaisingB) : undefined,
       totalLockedAmount,
       cliffPeriod,
       unlockPeriod,
@@ -384,7 +384,11 @@ export const useLaunchpadStore = createStore<LaunchpadState>((set, get) => ({
     const isV0Tx = txVersion === TxVersion.V0
     try {
       const { signedTxs } = await execute({ notSendToRpc: true, sequentially: true })
-      const { data } = await axios.post(`${get().mintHost}/create/sendTransaction`, { txs: [txToBase64(signedTxs[0])] })
+      const { data } = await axios.post(
+        `${get().mintHost}/create/sendTransaction`,
+        { txs: [txToBase64(signedTxs[0])] },
+        { skipError: true }
+      )
       const txBuf = Buffer.from(data.tx, 'base64')
       const bothSignedTx = VersionedTransaction.deserialize(txBuf as any)
 
@@ -419,12 +423,15 @@ export const useLaunchpadStore = createStore<LaunchpadState>((set, get) => ({
         txLength,
         ...callback,
         onConfirmed: () => {
-          callback.onConfirmed?.()
+          setTimeout(() => {
+            callback.onConfirmed?.()
+          }, 1500)
+
           useTokenAccountStore.getState().fetchTokenAccountAct({})
           setTimeout(() => {
             set({ refreshPoolMint: mint })
             refreshChartSubject.next(mint)
-          }, 1000)
+          }, 2000)
         }
       })
 
@@ -532,8 +539,9 @@ export const useLaunchpadStore = createStore<LaunchpadState>((set, get) => ({
 
       return { txId: '' }
     } catch (e: any) {
+      const errorMsg = e.response?.data?.msg
       callback.onError?.()
-      toastSubject.next({ ...meta, txError: e })
+      toastSubject.next({ status: 'error', ...meta, description: errorMsg || undefined, txError: errorMsg ? undefined : e })
     } finally {
       callback.onFinally?.()
     }
@@ -649,7 +657,6 @@ export const useLaunchpadStore = createStore<LaunchpadState>((set, get) => ({
       shareFeeRate: shareFeeReceiver ? defaultShareFeeRate : undefined,
       computeBudgetConfig: raydium.cluster === 'devnet' ? undefined : await getComputeBudgetConfig()
     })
-
     const decimals = Number(mintInfo.decimals)
     const meta = getTxMeta({
       action: 'sell',

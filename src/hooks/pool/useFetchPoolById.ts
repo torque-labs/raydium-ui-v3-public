@@ -11,7 +11,21 @@ import { ConditionalPoolType } from './type'
 import { useAppStore, useTokenStore } from '@/store'
 import { formatPoolData, poolInfoCache, formatAprData } from './formatter'
 
-const fetcher = ([url]: [url: string]) => axios.get<ApiV3PoolInfoItem[]>(url, { skipError: true })
+const fetcher = async ([url]: [url: string]) => {
+  const [host, query = ''] = url.split('?')
+  const params = new URLSearchParams(query).get('ids')
+  const idList = params?.split(',') || []
+
+  const chunkSize = 95
+  const keyGroup = []
+  for (let i = 0; i < idList.length; i += chunkSize) {
+    keyGroup.push(idList.slice(i, i + chunkSize))
+  }
+
+  const r = await Promise.all(keyGroup.map((list) => axios.get<ApiV3PoolInfoItem[]>(`${host}?ids=${list.join(',')}`, { skipError: true })))
+
+  return r.map((s) => s.data).flat()
+}
 
 export default function useFetchPoolById<T = ApiV3PoolInfoItem>(
   props: {
@@ -31,7 +45,7 @@ export default function useFetchPoolById<T = ApiV3PoolInfoItem>(
   error?: any
   isEmptyResult: boolean
   isValidating: boolean
-  mutate: KeyedMutator<AxiosResponse<ApiV3PoolInfoItem[], any>>
+  mutate: KeyedMutator<ApiV3PoolInfoItem[]>
 } {
   const {
     shouldFetch = true,
@@ -65,12 +79,12 @@ export default function useFetchPoolById<T = ApiV3PoolInfoItem>(
     refreshInterval,
     keepPreviousData
   })
+
   const resData = useMemo(
     () => [
       ...cacheDataList,
-      ...(data?.data.filter(
-        (d) => !!d && (!type || type === PoolFetchType.All || type.toLocaleLowerCase() === d.type.toLocaleLowerCase())
-      ) || [])
+      ...(data?.filter((d) => !!d && (!type || type === PoolFetchType.All || type.toLocaleLowerCase() === d.type.toLocaleLowerCase())) ||
+        [])
     ],
     [data, cacheDataList, type]
   )
@@ -88,7 +102,7 @@ export default function useFetchPoolById<T = ApiV3PoolInfoItem>(
   }, [resData])
 
   return {
-    data: data?.data.filter(Boolean).map(formatAprData) as T[],
+    data: data?.filter(Boolean).map(formatAprData) as T[],
     dataMap,
     formattedData,
     formattedDataMap,
