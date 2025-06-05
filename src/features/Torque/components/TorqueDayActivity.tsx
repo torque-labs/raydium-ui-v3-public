@@ -5,7 +5,7 @@ import { Check, XCircle } from 'react-feather'
 
 export function TorqueDayActivity({ day }: { day: TorqueUserRaffleDay }) {
   return (
-    <Flex direction={'column'} key={day.day.toISOString()} alignItems={'center'} justifyContent={'space-between'}>
+    <Flex direction={'column'} alignItems={'center'} justifyContent={'space-between'}>
       <Text fontSize="xs" color={colors.textTertiary}>
         {day.dayInitial}
       </Text>
@@ -26,7 +26,7 @@ export function TorqueDayActivity({ day }: { day: TorqueUserRaffleDay }) {
                 : `You didn't get a ticket for ${day.day.format('dddd')}.`
             }
           >
-            {day.ticketAchieved ? <Check color={colors.textPrimary} /> : <XCircle color={colors.textPrimary} />}
+            {day.ticketAchieved ? <Check color={colors.backgroundDark} /> : <XCircle color={colors.textPrimary} />}
           </Tooltip>
         </Flex>
       )}
@@ -43,7 +43,7 @@ export function TorqueDayActivity({ day }: { day: TorqueUserRaffleDay }) {
         >
           {day.ticketAchieved ? (
             <Tooltip label="You got your ticket for today!">
-              <Check color={colors.textPrimary} />
+              <Check color={colors.backgroundDark} />
             </Tooltip>
           ) : (
             <Text fontSize="xs" color={colors.textTertiary}>
