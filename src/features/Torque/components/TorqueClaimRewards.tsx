@@ -189,7 +189,7 @@ export default function TorqueClaimRewards({ claimOffer, campaigns, loading, err
                       window.open(url, '_blank')
                     }}
                   >
-                    Share
+                    Share to Earn
                   </Button>
                 </HStack>
               </Stack>
